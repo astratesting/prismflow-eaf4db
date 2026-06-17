@@ -1,167 +1,183 @@
 'use client';
 
-import { createClient } from '@/lib/supabase/client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 
 export default function SettingsPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [pwLoading, setPwLoading] = useState(false);
-  const [pwMessage, setPwMessage] = useState('');
-  const [pwError, setPwError] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const supabase = createClient();
-  const router = useRouter();
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   useEffect(() => {
     async function loadUser() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setName(user.user_metadata?.name || '');
         setEmail(user.email || '');
+        setName(user.user_metadata?.full_name || '');
       }
     }
     loadUser();
-  }, [supabase]);
+  }, []);
 
-  async function handleUpdateProfile(e: React.FormEvent) {
+  async function handleProfileUpdate(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
-    setMessage('');
-    setLoading(true);
+    setSaving(true);
+    setMessage(null);
 
-    const { error: updateError } = await supabase.auth.updateUser({
-      data: { name },
+    const { error } = await supabase.auth.updateUser({
+      data: { full_name: name },
     });
 
-    if (updateError) {
-      setError(updateError.message);
+    if (error) {
+      setMessage({ type: 'error', text: error.message });
     } else {
-      setMessage('Profile updated successfully.');
+      setMessage({ type: 'success', text: 'Profile updated successfully.' });
     }
-    setLoading(false);
+    setSaving(false);
   }
 
-  async function handleChangePassword(e: React.FormEvent) {
+  async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
-    setPwError('');
-    setPwMessage('');
-    setPwLoading(true);
+    setSaving(true);
+    setMessage(null);
 
-    const { error: pwUpdateError } = await supabase.auth.updateUser({
+    if (newPassword !== confirmNewPassword) {
+      setMessage({ type: 'error', text: 'New passwords do not match.' });
+      setSaving(false);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setMessage({ type: 'error', text: 'New password must be at least 6 characters.' });
+      setSaving(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({
       password: newPassword,
     });
 
-    if (pwUpdateError) {
-      setPwError(pwUpdateError.message);
+    if (error) {
+      setMessage({ type: 'error', text: error.message });
     } else {
-      setPwMessage('Password updated successfully.');
+      setMessage({ type: 'success', text: 'Password changed successfully.' });
+      setCurrentPassword('');
       setNewPassword('');
+      setConfirmNewPassword('');
     }
-    setPwLoading(false);
+    setSaving(false);
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-navy-900">Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your account settings.</p>
-      </div>
-
+    <div className="space-y-8 max-w-2xl">
       {/* Profile */}
-      <div className="card p-6 mb-6">
-        <h2 className="text-lg font-semibold text-navy-900 mb-6">Profile</h2>
-
-        {message && (
-          <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
-            {message}
-          </div>
-        )}
-        {error && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleUpdateProfile} className="space-y-4">
+      <div className="card">
+        <h3 className="text-lg font-semibold mb-6 font-[family-name:var(--font-heading)]">
+          Profile Settings
+        </h3>
+        <form onSubmit={handleProfileUpdate} className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Full name
+            <label className="block text-sm font-medium text-[#4A4258] mb-1.5 font-[family-name:var(--font-body)]">
+              Full Name
             </label>
             <input
-              id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue focus:border-transparent transition"
+              className="input-field"
+              placeholder="Your name"
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-              Email
+            <label className="block text-sm font-medium text-[#4A4258] mb-1.5 font-[family-name:var(--font-body)]">
+              Email Address
             </label>
             <input
-              id="email"
               type="email"
               value={email}
+              className="input-field bg-[#F5F0EB] cursor-not-allowed"
               disabled
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500"
+              readOnly
             />
+            <p className="text-xs text-[#A89F94] mt-1 font-[family-name:var(--font-body)]">
+              Email address cannot be changed.
+            </p>
           </div>
           <button
             type="submit"
-            disabled={loading}
-            className="btn-primary text-sm disabled:opacity-50"
+            disabled={saving}
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Saving...' : 'Save changes'}
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
       </div>
 
-      {/* Change Password */}
-      <div className="card p-6">
-        <h2 className="text-lg font-semibold text-navy-900 mb-6">Change Password</h2>
-
-        {pwMessage && (
-          <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
-            {pwMessage}
-          </div>
-        )}
-        {pwError && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-            {pwError}
-          </div>
-        )}
-
-        <form onSubmit={handleChangePassword} className="space-y-4">
+      {/* Password */}
+      <div className="card">
+        <h3 className="text-lg font-semibold mb-6 font-[family-name:var(--font-heading)]">
+          Change Password
+        </h3>
+        <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
-            <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1.5">
-              New password
+            <label className="block text-sm font-medium text-[#4A4258] mb-1.5 font-[family-name:var(--font-body)]">
+              New Password
             </label>
             <input
-              id="new-password"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Min. 8 characters"
+              className="input-field"
+              placeholder="At least 6 characters"
               required
-              minLength={8}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent-blue focus:border-transparent transition"
+              minLength={6}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#4A4258] mb-1.5 font-[family-name:var(--font-body)]">
+              Confirm New Password
+            </label>
+            <input
+              type="password"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+              className="input-field"
+              placeholder="Re-enter new password"
+              required
+              minLength={6}
             />
           </div>
           <button
             type="submit"
-            disabled={pwLoading}
-            className="btn-primary text-sm disabled:opacity-50"
+            disabled={saving}
+            className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {pwLoading ? 'Updating...' : 'Update password'}
+            {saving ? 'Changing...' : 'Change Password'}
           </button>
         </form>
       </div>
+
+      {/* Message */}
+      {message && (
+        <div
+          className={`p-4 rounded-xl text-sm font-[family-name:var(--font-body)] ${
+            message.type === 'success'
+              ? 'bg-[#ECFDF5] text-[#059669] border border-[#059669]/20'
+              : 'bg-[#FFF1F0] text-[#FF6B6B] border border-[#FF6B6B]/20'
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
     </div>
   );
 }
