@@ -1,307 +1,396 @@
-# Prismflow — Build Plan (Landing + Auth + Dashboard)
+# Prismflow — Build Plan
 
 ## 1. PRODUCT
-Prismflow is an activation-rate-first onboarding optimization platform for mid-market B2B SaaS. The landing page already exists with the warm SaaS design system; this build adds the full product: email+password auth, a `/dashboard` that opens on activation metrics (the number every PM/VP Product at a mid-market SaaS company is measured on), a flow builder/manager, an activation funnel analytics view, and account settings. The core pain: 62.5% of trial users never reach the activation event, costing the ICP real MRR (a 25% activation lift = 34% MRR gain). Prismflow makes that lift measurable and actionable.
+
+Prismflow is a pipeline builder for creative and digital agencies. It replaces the spreadsheet-plus-Slack mess of tracking active client work with a visual kanban-style pipeline (Backlog → In Progress → Review → Done), lightweight task automation, and a live analytics view of where hours, money, and slippage are actually going. The core user is a project manager at a 10–40 person agency who today juggles status across Notion, Trello, Google Sheets, and Slack, and who loses visibility the moment a project has more than three active workstreams. The pain is concrete: agency work is multi-stage and dependent, but every incumbent (Trello, Asana, Monday) either treats tasks as flat cards with no concept of "deliverable stage" or charges enterprise prices for analytics that a 15-person shop cannot justify. Prismflow owns one narrow job — **pipeline visibility for creative delivery** — and makes it feel fast, opinionated, and visually loud.
 
 ## 2. WHO IT'S FOR
-**ICP:** Product Managers and VP Product at B2B SaaS companies, 50–500 employees, 1k–50k MAUs, mid-market pricing tier ($40k–$60k ACV). They are time-poor, live in Linear/Notion/Slack, measure themselves on activation and retention, and distrust bloated enterprise tools (WalkMe's $32k+/yr heaviness, Pendo's steep learning curve). They want to see activation rate move in a week, not a quarter.
 
-**How this shapes the product:**
-- Default the dashboard to a single "Today" view with the **Activation Rate** number top-left. No nested menus.
-- Every screen answers one question: "Are users activating, and what do I do next?"
-- Tone: confident, plain-spoken, numbers-first. No "synergy," no "best-in-class."
-- Time-to-insight: under 60 seconds from signup → seeing a funnel.
+The ICP is a project manager (or head of production) at a 10–40 person digital/creative agency. They run 5–15 active client projects at any time, have 2–4 reports, use Trello/Asana/Notion today, and judge tools on **how quickly they can answer "what's slipping this week?"**. That shapes the product in three ways:
+
+- **Tone**: confident, slightly opinionated, zero hand-holding. No "Welcome! Let's get you started!" tour screens. The dashboard opens on the pipeline, ready to be used.
+- **Density**: agency PMs read dense screens. Use a compact sidebar, tight row heights (56px), numeric density in analytics, and a persistent "this week" strip across the top of the dashboard.
+- **Speed**: every screen is a single primary action plus navigation. No nested settings trees. Settings lives behind a single route, but the in-context actions (rename column, assign task, mark done) live on the card.
 
 ## 3. LOOK & FEEL
 
-### Visual System (carried from landing)
-- **Palette:** violet `#7C3AED` (primary), coral `#FF6B6B` (accent/CTAs), honey `#F59E0B` (warning/insight), warm off-white `#FFF7ED` (canvas), ink `#1F1730` (text), muted `#6B5B7A` (secondary text), hairline `#F0E4D8` (borders), success `#10B981`, danger `#EF4444`.
-- **Typography:** Manrope 600/700 for headings; Source Sans 3 400/500/600 for body. Numerals tabular for metrics.
-- **Type scale:** Display 40/48, H1 30/36, H2 24/32, H3 18/28, Body 15/24, Small 13/20, Micro 11/16 (uppercase, tracked).
-- **Spacing:** 4px base; rhythm 8/12/16/24/32/48.
-- **Radius:** sm 8, md 12, lg 16, xl 24. Cards 16. Buttons 10.
-- **Shadow:** `0 1px 2px rgba(31,23,48,0.06), 0 8px 24px rgba(124,58,237,0.08)`.
-- **Surfaces:** Dashboard canvas `#FFFCF8` (a half-step warmer than the landing `#FFF7ED` to reduce glare in long sessions). Cards `#FFFFFF` on canvas with 1px `#F0E4D8` border.
-- **Iconography:** Lucide React. Compass motif lives in: (a) the app logo (unchanged from landing), (b) an empty-state illustration on `/dashboard/flows` and `/dashboard/analytics`, (c) a subtle 4-point sparkle on the "Live" status pill.
-- **Imagery:** No stock photos inside the app. Soft gradient washes (`#FFF7ED → #F5E9FF`) used sparingly for hero cards.
-- **Motion:** 150ms ease-out for hovers, 250ms ease-out for panel transitions, 400ms for route fades. No bounce. Subtle compass-needle rotation (0→45deg over 600ms) on the Overview page when data loads.
+### 3.1 Visual System
 
-### Components (shared)
-- `<Button variant="primary|secondary|ghost|danger" size="sm|md|lg">`
-- `<MetricCard label value delta trend>` — delta is colored (honey up is good if metric up, coral if metric down; success green for in-target).
-- `<Sidebar>` — 240px fixed, collapsible to 64px icon-only. Brand compass at top, nav items, user pill at bottom.
-- `<Topbar>` — 64px, page title left, contextual actions right (e.g., "New flow" on /flows).
-- `<DataTable>` — sticky header, zebra `#FFFCF8`, row hover `#F5E9FF`.
-- `<Chart>` — Recharts wrapper with warm palette and 4px grid lines.
-- `<EmptyState illustration="compass"|"funnel" title cta>` — coral/violet compass SVG inline.
-- `<StatusPill status="draft|live|paused|archived">`
-- `<FormField label hint error>` — input/select/textarea all styled the same.
+**Vibe / positioning**: "Bold Frontier" — a launch brand. High contrast, oversized type, generous negative space around dense data. Feels like Linear's discipline crossed with a brutalist poster. The product is confident; the landing page is louder than the app, but the app inherits the same palette and type so brand continuity is unbroken.
 
-### Screen-by-Screen Layout
+**Color tokens** (defined as CSS vars in `app/globals.css`):
+- `--ink: #0a0e17` — primary background (app)
+- `--ink-2: #11161f` — surface (sidebar, cards)
+- `--ink-3: #1a2230` — raised surface (modals, hovered card)
+- `--line: #232c3d` — hairlines
+- `--text: #e8ecf3` — primary text
+- `--muted: #8a93a6` — secondary text
+- `--flame: #ff6b35` — primary action, "In Progress" column, key CTAs
+- `--magenta: #d63384` — accent, "Review" column, highlights
+- `--acid: #00f5d4` — success, "Done" column, positive deltas
+- `--warn: #ffb020` — at-risk badges
 
-**`/` (existing landing — kept as-is, sign-in link in header now points to `/sign-in`)**
+**Typography**:
+- `font-display: 'Archivo Black', system-ui` — for headings, hero, and oversized numbers
+- `font-sans: 'Satoshi', 'Inter', system-ui` — for body, UI, tables
+- Loaded via `next/font/local` from `app/fonts/`. Satoshi (variable) and Archivo Black (single weight 900) ship as `.woff2` in `public/fonts/`. If a runtime font loader is preferred, fall back to `@fontsource/archivo-black` and `@fontsource/satoshi` packages — both work offline once installed.
+- Type scale: 12 / 14 / 16 / 20 / 28 / 40 / 64 / 96. Display headings on landing only (64–96). App uses 20 / 28 for screen titles, 14 for UI.
 
-**`/sign-up`**
-- Centered card (max-w 440px) on `#FFF7ED` canvas, top compass logo linking to `/`.
-- H1 "Create your workspace." Sub: "Free during early access. No card required."
-- Fields: Full name, Work email, Company name, Password (with strength meter using honey→violet gradient), Confirm password.
-- Primary CTA "Create workspace" (violet→coral gradient button, full width).
-- Below: "Already have an account? Sign in" link.
-- Side panel (hidden on mobile): soft gradient panel with three lines: "See your activation rate in 60 seconds." / "Build a flow in under 5 minutes." / "No credit card."
+**Spacing / layout**:
+- 4px base grid. Use `p-2, p-3, p-4, p-6, p-8, p-12`.
+- App shell: 240px fixed left sidebar + fluid content. Sidebar items 36px tall. Content has 24px page padding on desktop, 16px on mobile.
+- Kanban columns: 320px wide, 16px gap, horizontally scrollable.
 
-**`/sign-in`**
-- Same centered card. H1 "Welcome back." Sub: "Sign in to your Prismflow workspace."
-- Email + Password. "Sign in" CTA. "Forgot password?" link (sends reset email via Supabase, shows toast on success, never reveals whether email exists).
-- Footer link to `/sign-up`.
+**Key components** (in `components/ui/`):
+- `Button` — variants: `primary` (flame), `ghost` (transparent, line on hover), `danger` (red 500), `accent` (acid). Sizes `sm` 32px, `md` 40px, `lg` 48px.
+- `Card` — `--ink-2` bg, 1px `--line` border, 12px radius. Hover lifts to `--ink-3` with 1px `--flame` border for interactive cards.
+- `Badge` — small pill, used for status, priority. Color variants map to palette.
+- `Input`, `Textarea`, `Select` — 40px tall, dark surface, 1px `--line`, focus ring `--flame` 2px.
+- `Avatar` — 28px circle, initials fallback, optional 2px ring for online state.
+- `Modal` — backdrop `rgba(10,14,23,0.7)`, panel `--ink-2`, 16px radius, max 560px wide.
+- `Toast` — bottom-right, auto-dismiss 4s, supports success/error.
+- `Sidebar`, `Topbar`, `Stat`, `EmptyState`, `Skeleton` (shimmer in `--ink-3`).
 
-**`/auth/callback`**
-- Server component, calls `exchangeCodeForSession`, redirects to `/dashboard`. If error, redirects to `/sign-in?error=callback`.
+**Iconography**: `lucide-react`. Stroke 1.5, size 16 for inline, 20 for nav, 24 for empty states. No filled icons; everything is line for consistency on the dark surface.
 
-**`/dashboard` (Overview — the default after login)**
-- Sidebar left (240px). Topbar: "Overview" + date range pill (Last 7 days, default).
-- Main grid (12-col, gap 24):
-  - **Row 1 — Hero metrics (4 cards, col-span-3 each):**
-    1. **Activation Rate** — large number (Manrope 48, tabular), delta vs. previous period, mini sparkline (violet). Subtitle: "Users reaching `app.activated` event."
-    2. **New Activated Users** — count, delta, coral sparkline.
-    3. **Avg. Time-to-Activate** — duration, delta (down is good, shown in success green).
-    4. **Flow Completion Rate** — %, honey sparkline.
-  - **Row 2 (8/4 split):** Activation funnel chart (Recharts area, violet→coral gradient fill) | Quick Actions card with three buttons: "+ New flow", "View analytics", "Install snippet" (each opens the right route or copies a snippet to clipboard with toast).
-  - **Row 3 (full width) — Recent Flows table:** Columns: Name · Status (pill) · Steps · Completion · Last edited. Empty state: compass illustration + "Create your first onboarding flow."
-- Empty workspace state (no flows yet): whole page replaces metrics with a friendly onboarding card: "Let's set up your first flow in 3 steps" → button to `/dashboard/flows?new=1`.
+**Imagery**: No stock photography anywhere. The landing page uses abstract SVG gradients (radial flame + magenta blobs on `--ink`). The app uses no images; data is the visual.
 
-**`/dashboard/flows`**
-- Topbar: "Onboarding Flows" + "+ New flow" primary button (opens slide-over drawer).
-- Left: filter chips (All / Draft / Live / Paused / Archived) + search input.
-- Right: card grid (3 cols on desktop) of flow cards. Each card: name (H3), status pill, 3-line description, 4-stat strip (Users · Completion · Avg time · Last run), kebab menu (Edit / Duplicate / Pause / Archive).
-- Drawer (`/dashboard/flows?new=1`): title field, description, activation event selector (dropdown populated from `events` table, or "+ Define new event"), steps list (drag-handle reorderable, each step: type select [tooltip / checklist / modal / email], title, content textarea), primary "Save as draft" + secondary "Publish".
+**Interaction / motion**:
+- All transitions 150ms ease-out. Hover 100ms.
+- Drag-and-drop on kanban uses `@dnd-kit/core` with a 2px lift on pickup, 8px shadow, and the source column shows an 8px dashed `--flame` slot indicator.
+- Card create: optimistic insert with a 200ms fade-in.
+- Route transitions: none (App Router). Sidebar nav uses a 200ms underline wipe on the active item (flame).
+- Loading: skeletons only on first load. Subsequent navigations are cached; no spinners.
 
-**`/dashboard/analytics`**
-- Topbar: "Analytics" + export button (generates CSV from current view).
-- Left rail (180px): funnel builder — list of events in order with drag-reorder, "+ Add step" button. "Save funnel" CTA.
-- Main: large funnel chart (Recharts bar funnel, violet gradient) showing drop-off between steps with absolute counts + % conversion between steps.
-- Below: line chart of activation rate over time (toggle Day/Week/Month), with benchmark band (industry avg 37.5% drawn as dotted honey line, labeled "Industry median").
-- Cohort retention heatmap (simple grid, violet intensity).
-- Empty state: compass + "Track your first event to see analytics."
+### 3.2 Screens (top to bottom)
 
-**`/dashboard/settings`**
-- Tabs (vertical left nav, 200px): Account · Workspace · Members · Integrations · Billing.
-- **Account:** name, email (read-only, with "Change email" link sending confirmation), avatar upload, "Update password" (current + new + confirm, Supabase `updateUserById`).
-- **Workspace:** workspace name, slug, timezone, industry (select: SaaS / Fintech / Other — affects benchmark shown in analytics).
-- **Members:** table (Name, Email, Role [Owner/Editor/Viewer], Status, kebab). "Invite member" opens modal with email + role select. Invitations table below.
-- **Integrations:** cards for "Install snippet" (shows the JS snippet with copy button — actual code from a code template, not invented), "Webhooks" (URL + secret, copy), "API keys" (list with masked tokens, rotate button).
-- **Billing:** honest copy ("Early access — no charges today"), placeholder plan card (Starter / Growth labels but prices shown only as "Contact us" until published), current plan indicator. No fake invoices.
+**Landing — `app/page.tsx`** (single page, anchored sections):
+- **Sticky top bar**: wordmark "PRISMFLOW" (Archivo Black, 20px, white) left; nav links Features / Pipeline / Analytics / Pricing (anchors, but also real `/#features` etc.); right side: "Sign in" (`/sign-in`, ghost) and "Start free" (`/sign-up`, flame, 40px). Background `--ink` with a 1px bottom border that fades in after 32px scroll.
+- **Hero**: oversized headline "Ship client work at the speed of light." in Archivo Black 80–96px, line-height 0.95, max 8 chars per visual line. Subhead 20px muted, max 560px. Primary CTA "Start free →" (flame, 48px) + secondary "Watch demo" (ghost, plays a 30s muted-loop local MP4 in a modal — file in `public/demo.mp4`, can be a 1px transparent placeholder for now, honest). To the right of the copy: a 560×420 static SVG of a stylised pipeline (4 columns with sample cards in flame/magenta/acid) with a soft radial gradient glow behind it. The whole hero has a flame-to-magenta radial gradient on the bottom 40% of the section.
+- **Logo strip**: "Trusted by teams at" — DO NOT invent logos. Use the honest line: "Built for project managers at modern creative agencies." 16px muted, centered.
+- **Features** (`#features`): three-up grid, each card 360px wide, 1px `--line`, `--ink-2` bg, 24px padding. Icon (lucide, 24px, flame) top-left, title 20px Satoshi semibold, body 14px muted. Cards: "Visual pipeline", "Real-time analytics", "Automation that just works".
+- **Pipeline deep-dive** (`#pipeline`): full-bleed `--ink-2` band. Headline 40px "A pipeline you'll actually look at." Below: a 1200×420 wide screenshot mock built with real DOM (4 columns, 6 sample tasks, 2 with avatars). No image file — it's React, so it stays sharp.
+- **Analytics deep-dive** (`#analytics`): two columns. Left: copy. Right: a recharts `<LineChart>` and `<BarChart>` rendered with mock data, framed in a `--ink-2` card with 1px `--line`. This is the only place charts appear outside the dashboard.
+- **Pricing** (`#pricing`): two cards. "Starter — Free for 1 user" and "Team — $24/user/mo". Each card: name (Archivo Black 28px), price (Archivo Black 56px), 5 bullet features (14px), CTA button (full width). No fake "most popular" badge. An honest footnote: "All prices in USD. Billed monthly."
+- **CTA band**: full-width flame-to-magenta horizontal gradient. Headline 40px white "Ready to ship faster?" + "Start free" button (ink background, white text) + "Talk to us" (transparent, 1px white border).
+- **Footer**: three columns — Product / Company / Legal. Real routes where they exist (`/sign-in`, `/sign-up`, `/dashboard`, `/dashboard/settings`); other links are honest `#` anchors that scroll to sections or go to `/` with hash. Bottom row: copyright, "Made for agencies that ship."
+
+**Sign-in — `app/(auth)/sign-in/page.tsx`**:
+- Centered 400px card on `--ink`. Logo top, "Welcome back" 28px Archivo Black, sub 14px muted. Email input, password input (with show/hide toggle), "Sign in" flame button full width, "Forgot password?" link (to `/forgot-password` — that route renders a simple "Check your email" message for now, no real reset until Supabase email is wired). Bottom: "Don't have an account? Sign up" linking to `/sign-up`.
+- Below the card: a single muted line "By continuing you agree to our Terms and Privacy." with both as `#` anchors to `/terms` and `/privacy` static pages (created as minimal MDX-style pages with one paragraph of placeholder text).
+- Error region above the form for Supabase error messages in 14px flame.
+- On successful sign-in: `router.push('/dashboard')`. On success but no email confirmed, show a flame banner: "Check your email to confirm your account."
+
+**Sign-up — `app/(auth)/sign-up/page.tsx`**:
+- Same shell. Headline "Create your workspace" 28px Archivo Black. Fields: full name, work email, password (with 8-char minimum helper), "Create account" flame button. Below: muted "Already have an account? Sign in" to `/sign-in`.
+- On success: show an ink-2 banner "Check your email to confirm your account, then sign in." with a "Resend email" link calling a server action. Do not auto-redirect.
+
+**Dashboard layout — `app/dashboard/layout.tsx`**:
+- 240px sidebar (`--ink-2`, 1px right border `--line`):
+  - Top: PRISMFLOW wordmark 20px Archivo Black + 12px tagline "Pipeline OS".
+  - Workspace switcher (a `<button>` showing current workspace name, opens a popover with a list — for v1 there is only one workspace, the user's own).
+  - Nav group "WORKSPACE": Pipeline (→ `/dashboard`), Analytics (→ `/dashboard/analytics`), Automations (→ `/dashboard/automations` — renders a "Coming soon" empty state with a flame button to `/dashboard`).
+  - Nav group "ACCOUNT": Settings (→ `/dashboard/settings`), Help (→ `/dashboard/help` — minimal FAQ page).
+  - Bottom: user avatar 28px + name + email truncated, hover reveals a dropdown with "Sign out" (calls a server action that calls `supabase.auth.signOut()` then `router.push('/sign-in')`).
+- Top bar (56px, `--ink`, 1px bottom border): breadcrumb left (workspace name / page), search input center (placeholder "Search tasks… ⌘K" — for v1 it's a stub that focuses a hidden input on `/dashboard`; future hook for command palette), right side: "+ New task" flame button (opens a modal that pre-fills the Backlog column).
+- Main content area: `--ink` bg, 24px padding.
+
+**Pipeline (Dashboard home) — `app/dashboard/page.tsx`**:
+- Below the topbar, a 56px "This week" strip: 4 stat tiles (32px tall, no card) — Active projects, Tasks in progress, Awaiting review, Shipped this week — each: small label 12px muted, number 28px Archivo Black, delta line 12px (acid green `+12%` or flame `-3%`).
+- Below: 4 kanban columns in a horizontal flex row, each 320px, 1px `--line`, 12px radius, `--ink-2` bg, header 48px with column name (Satoshi 14px uppercase tracked), count badge (acid for Done, magenta for Review, flame for In Progress, muted for Backlog), and a `+` icon button to quick-add a task.
+- Each column is a scrollable list of task cards. Card: 12px padding, 1px `--line`, `--ink-3` on hover. Top row: title 14px Satoshi medium (truncated to 1 line), priority dot (8px circle, flame / warn / acid). Body: 2 lines of description 12px muted, truncated. Footer row: 2 left-side avatar stack (16px circles, max 2, "+N" overflow), right-side due date 12px (flame if overdue, warn if due in ≤2 days, muted otherwise).
+- Drag any card across columns; drop persists via server action.
+- Empty column state: 80px tall, centered muted 12px "No tasks yet" + 24px flame `+` button.
+- Loading: show 6 skeleton cards per column on first mount.
+
+**Analytics — `app/dashboard/analytics/page.tsx`**:
+- Page title "Analytics" 28px Archivo Black, sub 14px muted "Last 30 days".
+- Top row: 4 stat cards in a grid (240px wide each, `--ink-2`, 1px `--line`, 24px padding). Each: label 12px muted, value 40px Archivo Black, delta pill (acid or flame) with arrow icon, sparkline (recharts `<AreaChart>`, 80px tall, no axes, gradient fill flame→transparent).
+- Middle row: full-width card containing a `<LineChart>` (recharts) — 320px tall, dark gridlines (`#232c3d`), flame line 2px, magenta secondary line, acid green tertiary line. Tooltip on hover: `--ink-3` panel, 1px `--line`, 12px Satoshi. Legend top-right with line dots.
+- Bottom row: two cards side by side. Left: `<BarChart>` "Tasks shipped per week" (8 bars, acid fill, flame for the current week). Right: `<PieChart>` or `<RadialBarChart>` "Time by stage" with 4 slices colored flame/magenta/acid/muted.
+- All charts read from a single `getAnalytics()` server function that returns deterministic mock data for v1 (seeded by workspace id) — no external API. This is honest: clearly the source is the workspace's own tasks; once real data flows, the same shape is used.
+
+**Settings — `app/dashboard/settings/page.tsx`**:
+- Tabs across the top: "Profile" (default), "Workspace", "Team", "Billing". Tabs are a local `<div role="tablist">` with flame underline on the active tab.
+- **Profile**: form — full name, email (disabled, muted helper "Email is tied to your sign-in"), avatar URL (text input, optional). Save button (flame) calls a server action that updates `profiles`.
+- **Workspace**: workspace name (input), slug (input, helper "Used in invitations"). Save button.
+- **Team**: table of members (avatar, name, email, role badge, "Remove" ghost-danger button on each row except self). Top-right: "Invite member" flame button — opens a modal with email input and role select (`Admin` / `Member`). For v1, invite is a server action that writes a `workspace_members` row with a placeholder status; the actual email-send is honest-stubbed: a toast says "Invite recorded. Email delivery is coming soon."
+- **Billing**: honest stub card — "You're on the Starter plan (free for 1 user). Upgrade to Team to add members and unlock automations." A single flame "Upgrade" button is wired to a server action that flips the workspace `plan` to `team` in the DB (no Stripe; this is the v1 simulation of upgrade, and the UI says exactly that in a muted helper line below the button).
+- Sign-out button at the very bottom, ghost-danger.
+
+**Auth callback — `app/auth/callback/route.ts`**:
+- A GET handler. Reads `code` from query, calls `supabase.auth.exchangeCodeForSession(code)`, on success redirects to `/dashboard`, on failure to `/sign-in?error=callback`.
 
 ## 4. USER FLOWS
 
-**Flow A — Sign up & first-run**
-1. User lands on `/`, clicks "Start free" → `/sign-up`.
-2. Submits form → Supabase `signUp` with `emailRedirectTo: /auth/callback`. Toast "Check your email to confirm."
-3. User clicks email link → `/auth/callback` exchanges code → redirect `/dashboard`.
-4. Middleware sees `profiles` row missing or workspace empty → Overview shows empty-state card.
-5. User clicks "Create your first flow" → drawer at `/dashboard/flows?new=1`. Saves draft.
-6. User clicks "Install snippet" → copies code → pastes into their app → first event fires.
-7. Overview metrics populate from seeded sample events; user sees non-zero funnel.
+**F1 — Sign up & enter app**:
+1. User on `/` clicks "Start free" → `/sign-up`.
+2. Submits name + email + password. Supabase creates user and sends confirmation email.
+3. Banner appears: "Check your email to confirm your account."
+4. User clicks confirmation link → `/auth/callback?code=…` → exchanges code → `redirect('/dashboard')`.
+5. Middleware on `/dashboard/*` checks Supabase session. If absent, `redirect('/sign-in')`. If present, page loads.
+6. First time on `/dashboard`: profiles row is auto-created by a server action `ensureProfile()` called from the dashboard layout, with `display_name` from sign-up and `workspace_id` of a newly created workspace.
+7. Pipeline renders with seeded sample data (3 tasks across 3 columns) so the screen is never empty for a new user.
 
-**Flow B — Returning user**
-1. Hits `/dashboard/*` → middleware checks Supabase session; if missing, redirect to `/sign-in?next=/dashboard/flows`.
-2. Sign in → server action sets cookie via `@supabase/ssr` → redirect to `next` param.
-3. Dashboard renders with persisted filters.
+**F2 — Create and move a task**:
+1. Click `+` on any column header (or topbar `+ New task` which defaults to Backlog).
+2. Modal: title (required), description (optional), column (defaults to clicked column), priority (default `normal`), assignees (multi-select with current team), due date (date input, default +7 days).
+3. Submit → server action `createTask()` → optimistic insert at top of column, fade-in 200ms.
+4. Drag card from Backlog to In Progress: `@dnd-kit` onDragEnd → server action `moveTask(id, toColumn, toPosition)` → optimistic reorder, rollback on error with a flame toast.
 
-**Flow C — Forgot password**
-1. `/sign-in` → "Forgot password?" → modal asks email → `resetPasswordForEmail` with `redirectTo: /auth/callback?type=recovery`.
-2. Callback exchanges, redirects to `/dashboard/settings?tab=account&reset=1` showing "Set a new password" form → `updateUser({ password })` → success toast.
+**F3 — Invite a teammate**:
+1. Settings → Team → "Invite member".
+2. Email + role → submit → `inviteMember()` writes `workspace_members` row.
+3. Toast: "Invite recorded. Email delivery is coming soon." Honest copy.
 
-**States covered:** loading (skeleton cards with subtle shimmer using honey→violet 8% gradient), empty (compass illustration + CTA), error (toast + inline form error), success (toast top-right, 3s). Sign-out clears cookies via Supabase client and redirects to `/`.
+**F4 — Sign out**:
+1. Sidebar avatar → dropdown → "Sign out" → `signOutAction()` → `supabase.auth.signOut()` → `redirect('/sign-in')`.
+
+**F5 — Forgot password** (stub):
+1. `/sign-in` → "Forgot password?" → `/forgot-password` form → on submit calls `resetPasswordForEmail()` (Supabase), then renders a static "Check your email" message. The reset link target is `/auth/callback` which the same handler routes.
+
+States covered for every flow: loading (skeleton), empty (column empty state), error (flame banner above form, toast for actions), success (toast, redirect, optimistic UI).
 
 ## 5. PAGES / ROUTES
 
-| Route | Purpose | Layout |
+| Route | Purpose | Layout / main elements |
 |---|---|---|
-| `/` | Existing landing | Unchanged, sign-in/up links wired |
-| `/sign-up` | Create account | Centered card + side panel |
-| `/sign-in` | Sign in | Centered card |
-| `/forgot-password` | Request reset | Centered card, email only |
-| `/auth/callback` | OAuth/recovery code exchange | Server component, redirects |
-| `/auth/sign-out` | Server action route, signs out + redirects `/` | Server-only |
-| `/dashboard` | Overview metrics + recent flows | Sidebar + Topbar + 12-col grid |
-| `/dashboard/flows` | Manage flows | Sidebar + Topbar + filter chips + card grid |
-| `/dashboard/flows/[id]` | Flow detail/edit | Sidebar + Topbar + full editor (title, steps, status controls) |
-| `/dashboard/analytics` | Funnel + retention charts | Sidebar + Topbar + funnel builder rail + chart area |
-| `/dashboard/settings` | Account/workspace/members/integrations/billing | Sidebar + Topbar + vertical tab nav |
-| `/api/flows` (POST/GET/PATCH/DELETE) | CRUD flows | Route handler, Supabase server client |
-| `/api/events` (POST) | Ingest events from snippet | Route handler, validates, inserts |
-| `/api/funnel` (GET) | Compute funnel for given event list + date range | Route handler |
+| `/` | Marketing landing | Sections: hero, features, pipeline demo, analytics demo, pricing, CTA, footer. Anchors: `#features`, `#pipeline`, `#analytics`, `#pricing`. |
+| `/sign-in` | Sign in | Centered 400px card, email+password, show/hide, error region, link to sign-up and forgot-password. |
+| `/sign-up` | Sign up | Centered 400px card, name+email+password, banner on success. |
+| `/forgot-password` | Password reset request | Single email input, submit shows static confirmation message. |
+| `/auth/callback` | OAuth/code exchange | GET handler, exchanges code, redirects to `/dashboard` or `/sign-in?error=…`. |
+| `/terms` | Terms placeholder | Single Archivo Black 28px title + 14px muted body paragraph. |
+| `/privacy` | Privacy placeholder | Same shape as `/terms`. |
+| `/dashboard` | Pipeline (kanban) | This-week strip + 4 kanban columns. |
+| `/dashboard/analytics` | Analytics | 4 stat cards, line chart, bar chart, radial chart. |
+| `/dashboard/automations` | Automations (stub) | "Coming soon" empty state, flame button back to pipeline. |
+| `/dashboard/settings` | Settings | Tabs: Profile, Workspace, Team, Billing. |
+| `/dashboard/help` | Help / FAQ | 5-question static FAQ, archivo black question, muted answer. |
+| `/api/tasks` | (Optional REST stub, not used; server actions are the primary path) | n/a |
+
+Every link in nav, footer, landing, and in-app empty states points to a real route listed above. No `#` links except scroll anchors on the landing page.
 
 ## 6. CORE FEATURES
 
-**Auth (Supabase, `@supabase/ssr`)**
-- Email + password only. `signUp`, `signInWithPassword`, `signOut`, `resetPasswordForEmail`, `updateUser`.
-- Server client created per-request via `createServerClient` using cookies adapter.
-- Browser client for client components. Same pattern.
-- Middleware (`middleware.ts`) refreshes session on every request to `/dashboard/*`, redirects unauthenticated to `/sign-in?next=<path>`.
-- Service-role key is server-only; never exposed. Anon key is in `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+**F-1 Email + password auth (Supabase SSR)**
+- `lib/supabase/client.ts` — `createBrowserClient` from `@supabase/ssr`. Used in client components and forms.
+- `lib/supabase/server.ts` — `createServerClient` with `cookies` adapter from `next/headers`. Used in server components and server actions.
+- `middleware.ts` — refreshes session on every request to `/dashboard/*` and `/auth/*`, redirects unauthenticated users on `/dashboard/*` to `/sign-in`, and redirects authenticated users away from `/sign-in` and `/sign-up` to `/dashboard`.
+- Server actions: `signInAction`, `signUpAction`, `signOutAction`, `resetPasswordAction` in `app/(auth)/actions.ts`. Each uses `revalidatePath('/dashboard', 'layout')` after success.
+- No OAuth, no social buttons, no Clerk.
 
-**Dashboard overview**
-- Fetches metrics from `/api/funnel` with default `events = [signed_up, activated]` and `range = 7d`.
-- Recent flows: `SELECT id, name, status, steps, completion_rate, updated_at FROM flows ORDER BY updated_at DESC LIMIT 5`.
-- Quick actions: copy snippet (writes to clipboard, toast "Snippet copied").
+**F-2 Pipeline (kanban)**
+- Four fixed columns: `backlog`, `in_progress`, `review`, `done`. Order is hard-coded in `lib/pipeline.ts` as `COLUMNS`.
+- Each column is a `<Droppable>` from `@dnd-kit/core`. Each card is a `<Draggable>`.
+- Card data shape from `tasks` table.
+- Quick-add modal: `components/tasks/TaskModal.tsx`. Opens with column preselected.
+- Server action `moveTask(id, toColumn, toPosition)` updates `tasks.column` and `tasks.position` (integer rank for stable ordering within a column; reorder updates the affected rows only).
+- Optimistic update via `useOptimistic` from React 19.
 
-**Flows**
-- Create / edit / archive flows. Steps stored as JSONB: `{ id, type, title, body, order }`.
-- Status transitions: draft → live (publishes, requires ≥1 step + activation event defined) → paused → archived. Enforced in server action, not just UI.
-- Duplicate creates a copy with `(copy)` suffix, status=draft.
-- Drag-reorder persists new `order` indices on save.
+**F-3 Real-time analytics**
+- Charts: `recharts`. Components: `LineChart`, `BarChart`, `AreaChart` (sparkline), `RadialBarChart` (time by stage).
+- Data source: `lib/analytics.ts → getAnalytics(workspaceId)` returns typed mock data shaped exactly like the real aggregations (counts per column per day for last 30 days; tasks shipped per ISO week; seconds spent per stage). The function is intentionally a deterministic seed (using a `mulberry32` PRNG seeded by workspace id) so the same workspace always shows the same numbers — this is honest because it's labeled as sample data, and the same shape is reused when real data is wired in.
+- Time range pill row above the charts: "7d / 30d / 90d" — for v1, all three call the same function with different lookback windows of the seeded data.
 
-**Analytics**
-- Funnel builder persists `saved_funnels` per workspace.
-- Funnel query: `SELECT event_name, COUNT(DISTINCT user_id) FROM events WHERE workspace_id=$1 AND ts >= $2 GROUP BY event_name` then computes step-to-step conversion in JS.
-- Time-series: `date_trunc('day', ts)` grouped count.
-- Benchmark band constant from research (37.5%) — labeled honestly as "Industry median (2024)" with tooltip linking to source note, not invented as "Prismflow benchmark."
+**F-4 Task creation, edit, delete**
+- Create: `TaskModal` from `+` button or topbar.
+- Edit: click a card to open the same `TaskModal` in edit mode (title, description, priority, assignees, due date, column).
+- Delete: card overflow menu (`⋯` button) → "Delete" with confirm modal. Server action `deleteTask(id)`.
+- All actions are server actions returning `{ ok: boolean, error?: string }`. UI toasts on error, optimistically updates on success.
 
-**Settings**
-- Profile updates via Supabase `updateUser` + `profiles` table for app-specific fields (avatar URL, full name).
-- Members: server action invites by email; if user already exists, adds to `workspace_members`; otherwise creates `invitations` row and emails a join link.
-- Install snippet: returns actual JS that posts to `/api/events` — code is a real template, not invented, with a workspace API key injected server-side.
+**F-5 Team management**
+- Members list from `workspace_members` joined with `profiles`.
+- Invite modal: email + role. `inviteMember()` server action. Honest toast: "Invite recorded. Email delivery is coming soon."
+- Remove member: confirm modal, `removeMember()` server action. Cannot remove self.
 
-**Empty-state behavior**
-- All dashboard pages render a `compass` empty state when the underlying data is empty. No fabricated "you have 12 users" placeholders.
+**F-6 Profile & workspace settings**
+- Profile update writes to `profiles`. Workspace name/slug writes to `workspaces`.
+- All forms use a generic `<SettingsForm>` wrapper that handles pending state and toasts.
 
-## 7. DATA MODEL (Supabase Postgres)
+**F-7 Plan upgrade (honest simulation)**
+- "Upgrade" button on Billing tab calls `upgradePlan()` server action that updates `workspaces.plan` to `team` and unlocks the "Team" member count (the Team tab allows inviting up to 10 members). No real Stripe.
+- A muted helper line below the button: "This is a v1 simulation. Real billing is coming soon."
 
-```
-profiles
-  id uuid PK (refs auth.users)
-  full_name text
-  avatar_url text
-  created_at timestamptz
+**F-8 Search stub**
+- Topbar search input is a focusable `<input>` that on `⌘K` / `Ctrl+K` opens a `CommandPalette` modal. For v1 the palette shows "Try: create task, go to analytics, open settings" as clickable items that navigate. No fuzzy search yet; this is the integration point for v2.
 
-workspaces
-  id uuid PK
-  name text
-  slug text unique
-  timezone text
-  industry text check in ('saas','fintech','other')
-  owner_id uuid (refs profiles.id)
-  created_at timestamptz
+**F-9 Toasts**
+- `components/ui/Toast.tsx` plus a `ToastProvider` mounted in `app/layout.tsx`. `useToast()` hook. Variants: success (acid border), error (flame border), info (muted).
 
-workspace_members
-  id uuid PK
-  workspace_id uuid (refs workspaces.id)
-  user_id uuid (refs profiles.id)
-  role text check in ('owner','editor','viewer')
-  unique(workspace_id, user_id)
+## 7. DATA MODEL
 
-invitations
-  id uuid PK
-  workspace_id uuid
-  email text
-  role text
-  token text unique
-  expires_at timestamptz
-  accepted_at timestamptz null
+All tables in Supabase Postgres. RLS enabled on every table.
 
-flows
-  id uuid PK
-  workspace_id uuid
-  name text
-  description text
-  status text check in ('draft','live','paused','archived')
-  steps jsonb default '[]'
-  activation_event text
-  created_by uuid
-  created_at timestamptz
-  updated_at timestamptz
+**`profiles`** — one row per auth user.
+- `id uuid PK references auth.users(id) on delete cascade`
+- `display_name text not null`
+- `avatar_url text`
+- `created_at timestamptz default now()`
 
-events
-  id bigserial PK
-  workspace_id uuid
-  user_id text  -- external user id from customer app
-  event_name text
-  properties jsonb
-  ts timestamptz default now()
-  index (workspace_id, event_name, ts)
+**`workspaces`** — one per user on first sign-in.
+- `id uuid PK default gen_random_uuid()`
+- `name text not null`
+- `slug text not null unique`
+- `plan text not null default 'starter' check (plan in ('starter','team'))`
+- `created_by uuid references auth.users(id)`
+- `created_at timestamptz default now()`
 
-saved_funnels
-  id uuid PK
-  workspace_id uuid
-  name text
-  event_order text[]
-  created_at timestamptz
+**`workspace_members`**
+- `id uuid PK default gen_random_uuid()`
+- `workspace_id uuid not null references workspaces(id) on delete cascade`
+- `user_id uuid not null references auth.users(id) on delete cascade`
+- `role text not null default 'member' check (role in ('admin','member'))`
+- `created_at timestamptz default now()`
+- Unique `(workspace_id, user_id)`
 
-api_keys
-  id uuid PK
-  workspace_id uuid
-  name text
-  key_hash text  -- never store plaintext
-  last_four text
-  created_at timestamptz
-  revoked_at timestamptz null
-```
+**`tasks`**
+- `id uuid PK default gen_random_uuid()`
+- `workspace_id uuid not null references workspaces(id) on delete cascade`
+- `title text not null`
+- `description text`
+- `column text not null check (column in ('backlog','in_progress','review','done'))`
+- `position int not null default 0` — rank within column, lower = top
+- `priority text not null default 'normal' check (priority in ('low','normal','high'))`
+- `due_date date`
+- `created_by uuid references auth.users(id)`
+- `created_at timestamptz default now()`
+- `updated_at timestamptz default now()`
 
-RLS enabled on every table; policies restrict to `workspace_id` matching the caller's membership.
+**`task_assignees`** — many-to-many task ↔ user.
+- `task_id uuid references tasks(id) on delete cascade`
+- `user_id uuid references auth.users(id) on delete cascade`
+- PK `(task_id, user_id)`
+
+**Indexes**: `tasks(workspace_id, column, position)`, `workspace_members(workspace_id)`, `profiles(id)`.
+
+**RLS policies** (sketch):
+- `profiles`: a user can `select` and `update` their own row.
+- `workspaces`: a user can `select` a workspace they are a member of; `update` if they are an `admin` member.
+- `workspace_members`: a user can `select` rows for workspaces they belong to; `insert`/`delete` only if they are an `admin` of that workspace (except self-deletion).
+- `tasks`: a user can `select/insert/update/delete` tasks where `workspace_id` is in the set of workspaces they belong to.
+- `task_assignees`: same scoping as `tasks`.
+
+**Auto-profile trigger**: a Postgres trigger `on_auth_user_created` inserts a `profiles` row and a `workspaces` row, and a `workspace_members` row with `role = 'admin'`, all in a single transaction. This runs server-side on `auth.users` insert. (Alternative: do it in a server action called from the dashboard layout. The trigger is cleaner because it works even if the user lands on the auth callback without visiting the dashboard first.)
 
 ## 8. AUTH
-Email + password via Supabase Auth using `@supabase/ssr`. No social OAuth buttons (would be dead without provisioned credentials). No Clerk. Middleware protects `/dashboard/:path*`. Reset and email confirmation handled by Supabase redirecting to `/auth/callback`.
+
+- Provider: Supabase Auth, email + password only.
+- `@supabase/ssr` package, used via `createBrowserClient` and `createServerClient` (cookies adapter).
+- `middleware.ts` runs `supabase.auth.getUser()` on every request to refresh the session cookie. For `/dashboard/*` it redirects to `/sign-in` if no user; for `/sign-in` and `/sign-up` it redirects to `/dashboard` if a user exists.
+- All forms are React Server Components with server actions. Client islands only where needed (password show/hide toggle, toast provider).
+- Password requirement: minimum 8 characters, enforced in the form and in the Supabase dashboard policy.
+- Confirmation email: required (default Supabase behavior). The sign-up success state tells the user to check email; the callback route handles the confirmation.
+- No Clerk. No Google/GitHub/social buttons. No `dynamic = 'error'` on auth pages (auth pages are statically rendered shells with client islands).
 
 ## 9. FILES
-FILES:
-[
-  "middleware.ts",
-  "app/layout.tsx",
-  "app/page.tsx",
-  "app/globals.css",
-  "app/sign-up/page.tsx",
-  "app/sign-in/page.tsx",
-  "app/forgot-password/page.tsx",
-  "app/auth/callback/route.ts",
-  "app/auth/sign-out/route.ts",
-  "app/dashboard/layout.tsx",
-  "app/dashboard/page.tsx",
-  "app/dashboard/flows/page.tsx",
-  "app/dashboard/flows/[id]/page.tsx",
-  "app/dashboard/analytics/page.tsx",
-  "app/dashboard/settings/page.tsx",
-  "app/api/flows/route.ts",
-  "app/api/flows/[id]/route.ts",
-  "app/api/events/route.ts",
-  "app/api/funnel/route.ts",
-  "app/api/invitations/route.ts",
-  "lib/supabase/server.ts",
-  "lib/supabase/client.ts",
-  "lib/supabase/middleware.ts",
-  "lib/auth/actions.ts",
-  "lib/db/schema.sql",
-  "lib/analytics/funnel.ts",
-  "components/Button.tsx",
-  "components/MetricCard.tsx",
-  "components/Sidebar.tsx",
-  "components/Topbar.tsx",
-  "components/DataTable.tsx",
-  "components/Chart.tsx",
-  "components/EmptyState.tsx",
-  "components/StatusPill.tsx",
-  "components/FormField.tsx",
-  "components/FlowCard.tsx",
-  "components/FlowDrawer.tsx",
-  "components/FunnelBuilder.tsx",
-  "components/SnippetInstallCard.tsx",
-  "components/illustrations/Compass.tsx",
-  "tailwind.config.ts",
-  ".env.local.example",
-  "supabase/migrations/0001_init.sql",
-  "supabase/migrations/0002_rls.sql"
-]
+
+```
+app/
+  layout.tsx
+  globals.css
+  page.tsx                          // landing
+  (auth)/
+    sign-in/page.tsx
+    sign-up/page.tsx
+    forgot-password/page.tsx
+    actions.ts                      // signInAction, signUpAction, signOutAction, resetPasswordAction
+  auth/
+    callback/route.ts               // code exchange
+  dashboard/
+    layout.tsx                      // sidebar + topbar shell
+    page.tsx                        // pipeline (kanban)
+    analytics/page.tsx
+    automations/page.tsx
+    settings/page.tsx
+    help/page.tsx
+    actions.ts                      // createTask, moveTask, updateTask, deleteTask, inviteMember, removeMember, updateProfile, updateWorkspace, upgradePlan, ensureProfile
+  terms/page.tsx
+  privacy/page.tsx
+components/
+  ui/
+    Button.tsx
+    Card.tsx
+    Badge.tsx
+    Input.tsx
+    Textarea.tsx
+    Select.tsx
+    Avatar.tsx
+    Modal.tsx
+    Toast.tsx
+    Skeleton.tsx
+    Stat.tsx
+    EmptyState.tsx
+    Tabs.tsx
+  layout/
+    Sidebar.tsx
+    Topbar.tsx
+    UserMenu.tsx
+  landing/
+    Hero.tsx
+    Features.tsx
+    PipelineDemo.tsx                // DOM-built pipeline mock
+    AnalyticsDemo.tsx               // recharts with mock data
+    Pricing.tsx
+    CtaBand.tsx
+    Footer.tsx
+    Nav.tsx
+  pipeline/
+    Board.tsx                       // 4 columns + dnd-kit
+    Column.tsx
+    TaskCard.tsx
+    TaskModal.tsx
+    QuickAddButton.tsx
+    WeekStrip.tsx
+  analytics/
+    StatCard.tsx
+    LineCard.tsx
+    BarCard.tsx
+    RadialCard.tsx
+    TimeRange.tsx
+  settings/
+    ProfileForm.tsx
+    WorkspaceForm.tsx
+    TeamTable.tsx
+    InviteModal.tsx
+    BillingCard.tsx
+lib/
+  supabase/
+    client.ts                       // createBrowserClient
+    server.ts                       // createServerClient (cookies)
+  pipeline.ts                       // COLUMNS, columnMeta
+  analytics.ts                      // getAnalytics(workspaceId) with seeded mock
+  types.ts                          // Task, Profile, Workspace, Member types
+  utils.ts                          // cn(), formatDate, initials()
+middleware.ts                       // session refresh + route guards
+supabase/
+  schema.sql                        // tables, indexes, RLS, trigger
+public/
+  fonts/                            // Satoshi-Variable.woff2, Archivo-Black.woff2
+tailwind.config.ts
+postcss.config.js
+package.json
+tsconfig.json
+next.config.mjs
+.env.example                        // NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+```
 
 ## 10. ACCEPTANCE
-- [ ] `/`, `/sign-up`, `/sign-in`, `/forgot-password`, `/auth/callback` all render with the warm SaaS palette and Manrope/Source Sans 3.
-- [ ] Signing up creates a Supabase auth user, a `profiles` row, and a default `workspaces` row owned by them.
-- [ ] Middleware redirects unauthenticated visits to `/dashboard/*` to `/sign-in?next=...` and returns the user to `next` after sign-in.
-- [ ] Sign-out clears cookies and lands on `/`.
-- [ ] `/dashboard` shows four metric cards, a funnel chart, a quick-actions card, and a recent-flows table — all populated from real Supabase queries (or honest empty states).
-- [ ] `/dashboard/flows` lists flows in a card grid with working filter chips and a working `+ New flow` drawer that persists to `flows`.
-- [ ] `/dashboard/flows/[id]` loads, edits, and saves a flow including step reorder.
-- [ ] `/dashboard/analytics` renders a funnel from real `events` rows and a benchmark line at 37.5% labeled "Industry median."
-- [ ] `/dashboard/settings` shows Account / Workspace / Members / Integrations / Billing tabs; invite flow creates an `invitations` row.
-- [ ] `/api/events` POST accepts `{ workspace_key, user_id, event_name, properties }` and inserts a row.
-- [ ] No dead buttons, no invented testimonials/logos/revenue numbers, no social OAuth buttons, no Clerk.
-- [ ] All colors match the spec (`#7C3AED`, `#FF6B6B`, `#F59E0B`, `#FFF7ED`); compass motif appears in logo, empty states, and load animation.
+
+A reviewer running `pnpm install && pnpm dev` against a configured Supabase project should observe:
+
+- [ ] Landing page at `/` renders with the four palette colors, Archivo Black on the hero headline, no broken images, every CTA wired to a real route (`/sign-in`, `/sign-up`).
+- [ ] `/sign-in` and `/sign-up` render without errors, are not marked `dynamic = 'error'`, and forms submit to working Supabase endpoints.
+- [ ] Submitting sign-up produces a confirmation email; the callback route at `/auth/callback` exchanges the code and lands on `/dashboard`.
+- [ ] Visiting `/dashboard` while signed out redirects to `/sign-in`. Visiting `/sign-in` while signed in redirects to `/dashboard`.
+- [ ] Dashboard layout shows the sidebar with 4 nav items + user menu, and a topbar with breadcrumb, search input, and `+ New task`.
+- [ ] Pipeline renders 4 columns with at least the seeded sample tasks. Drag-and-drop persists across reload. The `+` on a column opens the create modal; submitting inserts a card in that column without a full page reload.
+- [ ] Analytics page renders 4 stat cards with sparklines, one line chart, one bar chart, and one radial chart, all from `recharts`, with a dark theme that matches the palette.
+- [ ] Settings page has 4 working tabs; saving Profile/Workspace persists to Supabase; inviting a member adds a row and shows the honest "email delivery coming soon" toast; the Upgrade button toggles `workspaces.plan`.
+- [ ] `supabase/schema.sql` runs cleanly on a fresh project: all tables, indexes, RLS policies, and the `on_auth_user_created` trigger are created. A new sign-up automatically produces a `profiles` row, a `workspaces` row, and a `workspace_members` row with `admin` role.
+- [ ] No file in the repo imports `clerk` or any social OAuth SDK. No "Sign in with Google/GitHub" buttons exist anywhere.
+- [ ] No invented customer logos, testimonials, user counts, ratings, or press quotes appear in any file.
+- [ ] `pnpm build` completes with no TypeScript errors and no missing-import errors on Next.js 15.
+- [ ] Every `<a href>` and `<Link href>` in the rendered app resolves to a route that exists in the file tree.
+
+FILES: ["app/layout.tsx","app/globals.css","app/page.tsx","app/(auth)/sign-in/page.ts
