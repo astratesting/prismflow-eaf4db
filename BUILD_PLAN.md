@@ -1,336 +1,307 @@
-# Prismflow — Build Plan
+# Prismflow — Build Plan (Landing + Auth + Dashboard)
 
 ## 1. PRODUCT
-
-Prismflow is a B2B SaaS onboarding optimization platform that lets product teams build, ship, and measure in-app onboarding flows without engineering tickets. The core value is **activation-rate lift**: research shows the average SaaS activation rate is 37.5% and a 25% activation improvement drives a 34% MRR increase over 12 months. The primary user is a Product Manager or Head of Growth at a mid-market B2B SaaS company (50–500 employees, 1K–50K MAUs) who is losing 62.5% of signups before activation and needs a faster, cheaper alternative to WalkMe/Pendo/Whatfix. Prismflow ships a focused flow builder, real-time activation analytics, and AI-suggested flow improvements — all behind a single dashboard.
+Prismflow is an activation-rate-first onboarding optimization platform for mid-market B2B SaaS. The landing page already exists with the warm SaaS design system; this build adds the full product: email+password auth, a `/dashboard` that opens on activation metrics (the number every PM/VP Product at a mid-market SaaS company is measured on), a flow builder/manager, an activation funnel analytics view, and account settings. The core pain: 62.5% of trial users never reach the activation event, costing the ICP real MRR (a 25% activation lift = 34% MRR gain). Prismflow makes that lift measurable and actionable.
 
 ## 2. WHO IT'S FOR
-
-**ICP:** Product Managers, Growth leads, and Heads of Product at mid-market B2B SaaS companies (50–500 employees, 1K–50K MAUs) who own activation metrics and ship onboarding changes weekly.
+**ICP:** Product Managers and VP Product at B2B SaaS companies, 50–500 employees, 1k–50k MAUs, mid-market pricing tier ($40k–$60k ACV). They are time-poor, live in Linear/Notion/Slack, measure themselves on activation and retention, and distrust bloated enterprise tools (WalkMe's $32k+/yr heaviness, Pendo's steep learning curve). They want to see activation rate move in a week, not a quarter.
 
 **How this shapes the product:**
-- **Time-poor, metric-obsessed.** Dashboard opens on a single Today view with one primary CTA ("Create your first flow") — no nested menus, no setup wizards longer than 3 steps.
-- **Numbers-first.** Every screen surfaces a metric (activation %, completion %, drop-off). No decorative charts.
-- **Self-serve.** No "contact sales" gating on the core feature. Pricing is transparent.
-- **Tone:** confident, plain-spoken, slightly opinionated. "Ship a flow in 4 minutes" not "Empower your onboarding journey."
+- Default the dashboard to a single "Today" view with the **Activation Rate** number top-left. No nested menus.
+- Every screen answers one question: "Are users activating, and what do I do next?"
+- Tone: confident, plain-spoken, numbers-first. No "synergy," no "best-in-class."
+- Time-to-insight: under 60 seconds from signup → seeing a funnel.
 
 ## 3. LOOK & FEEL
 
-### Visual system
+### Visual System (carried from landing)
+- **Palette:** violet `#7C3AED` (primary), coral `#FF6B6B` (accent/CTAs), honey `#F59E0B` (warning/insight), warm off-white `#FFF7ED` (canvas), ink `#1F1730` (text), muted `#6B5B7A` (secondary text), hairline `#F0E4D8` (borders), success `#10B981`, danger `#EF4444`.
+- **Typography:** Manrope 600/700 for headings; Source Sans 3 400/500/600 for body. Numerals tabular for metrics.
+- **Type scale:** Display 40/48, H1 30/36, H2 24/32, H3 18/28, Body 15/24, Small 13/20, Micro 11/16 (uppercase, tracked).
+- **Spacing:** 4px base; rhythm 8/12/16/24/32/48.
+- **Radius:** sm 8, md 12, lg 16, xl 24. Cards 16. Buttons 10.
+- **Shadow:** `0 1px 2px rgba(31,23,48,0.06), 0 8px 24px rgba(124,58,237,0.08)`.
+- **Surfaces:** Dashboard canvas `#FFFCF8` (a half-step warmer than the landing `#FFF7ED` to reduce glare in long sessions). Cards `#FFFFFF` on canvas with 1px `#F0E4D8` border.
+- **Iconography:** Lucide React. Compass motif lives in: (a) the app logo (unchanged from landing), (b) an empty-state illustration on `/dashboard/flows` and `/dashboard/analytics`, (c) a subtle 4-point sparkle on the "Live" status pill.
+- **Imagery:** No stock photos inside the app. Soft gradient washes (`#FFF7ED → #F5E9FF`) used sparingly for hero cards.
+- **Motion:** 150ms ease-out for hovers, 250ms ease-out for panel transitions, 400ms for route fades. No bounce. Subtle compass-needle rotation (0→45deg over 600ms) on the Overview page when data loads.
 
-- **Vibe:** Warm SaaS — approachable but professional. Not corporate-blue, not playful-purple. Think Linear meets Notion's warmth.
-- **Palette (from existing globals.css):**
-  - `--violet` (#7c3aed) — primary actions, links, focus rings
-  - `--coral` (#fb7185) — secondary accent, highlights, "live" indicators
-  - `--honey` (#f59e0b) — warnings, in-progress states, metric highlights
-  - `--warm-off-white` (#faf7f2) — page background
-  - `--ink` (#1a1a1a) — primary text
-  - `--muted` (#6b6b6b) — secondary text
-  - `--surface` (#ffffff) — cards
-  - `--border` (#e8e3d8) — dividers
-- **Typography:** Manrope (display, headings, buttons), Source Sans 3 (body, tables). Headings tight tracking, body relaxed.
-- **Spacing:** 4px base. Cards use 24px padding. Sections separated by 64–96px vertical rhythm.
-- **Surfaces:** 12px rounded corners on cards, 8px on inputs/buttons. Subtle 1px borders, no heavy shadows. One soft shadow reserved for floating elements (dropdowns, modals).
-- **Iconography:** Lucide icons, 16px in dense UI, 20px in cards, 24px in feature blocks. Stroke width 1.5.
-- **Imagery:** No stock photos. Abstract gradient blobs (violet→coral) for hero backgrounds. Product screenshots are real dashboard mockups.
-- **Motion:** 150ms ease-out on hover, 200ms on state changes. Subtle scale (1.02) on card hover. No bouncy springs.
+### Components (shared)
+- `<Button variant="primary|secondary|ghost|danger" size="sm|md|lg">`
+- `<MetricCard label value delta trend>` — delta is colored (honey up is good if metric up, coral if metric down; success green for in-target).
+- `<Sidebar>` — 240px fixed, collapsible to 64px icon-only. Brand compass at top, nav items, user pill at bottom.
+- `<Topbar>` — 64px, page title left, contextual actions right (e.g., "New flow" on /flows).
+- `<DataTable>` — sticky header, zebra `#FFFCF8`, row hover `#F5E9FF`.
+- `<Chart>` — Recharts wrapper with warm palette and 4px grid lines.
+- `<EmptyState illustration="compass"|"funnel" title cta>` — coral/violet compass SVG inline.
+- `<StatusPill status="draft|live|paused|archived">`
+- `<FormField label hint error>` — input/select/textarea all styled the same.
 
-### Screen-by-screen layout
+### Screen-by-Screen Layout
 
-**Landing page (`/`) — already exists, keep as-is:**
-- Sticky transparent navbar (logo left, nav center, Sign in + "Start free" CTA right)
-- Hero: left-aligned headline ("Ship onboarding flows that actually convert"), subhead, two CTAs (primary "Start free", secondary "See how it works"), right-side product preview card showing a flow editor
-- Features: 3-column grid, 6 features (Flow Builder, Activation Analytics, AI Suggestions, A/B Testing, Segmentation, Integrations)
-- HowItWorks: 3 numbered steps with screenshots
-- Pricing: 3 tiers (Free, Growth $249/mo, Scale $799/mo) — transparent, no "contact us"
-- TrustedBy: neutral placeholder ("Used by product teams at B2B SaaS companies") — no fake logos
-- CTA: full-width gradient banner
-- Footer: 4 columns (Product, Company, Resources, Legal) + copyright
+**`/` (existing landing — kept as-is, sign-in link in header now points to `/sign-in`)**
 
-**Sign-in (`/sign-in`):**
-- Centered card on warm-off-white background, max-width 400px
-- Logo top, "Welcome back" heading, email + password fields, "Sign in" primary button (full width, violet)
-- Below: "Don't have an account? Sign up" link
-- Error messages inline below fields, coral text
-- No social buttons (per rules)
+**`/sign-up`**
+- Centered card (max-w 440px) on `#FFF7ED` canvas, top compass logo linking to `/`.
+- H1 "Create your workspace." Sub: "Free during early access. No card required."
+- Fields: Full name, Work email, Company name, Password (with strength meter using honey→violet gradient), Confirm password.
+- Primary CTA "Create workspace" (violet→coral gradient button, full width).
+- Below: "Already have an account? Sign in" link.
+- Side panel (hidden on mobile): soft gradient panel with three lines: "See your activation rate in 60 seconds." / "Build a flow in under 5 minutes." / "No credit card."
 
-**Sign-up (`/sign-up`):**
-- Same layout as sign-in
-- Heading: "Start free — no credit card"
-- Fields: Full name, Work email, Password (with strength indicator), Company name
-- Submit creates account via `/api/auth/signup`, then signs in, then redirects to `/dashboard/onboarding`
-- Below: "Already have an account? Sign in"
+**`/sign-in`**
+- Same centered card. H1 "Welcome back." Sub: "Sign in to your Prismflow workspace."
+- Email + Password. "Sign in" CTA. "Forgot password?" link (sends reset email via Supabase, shows toast on success, never reveals whether email exists).
+- Footer link to `/sign-up`.
 
-**Dashboard layout (`/dashboard/*`):**
-- Left sidebar (240px, collapsible to 64px): logo top, nav items (Home, Flows, Analytics, Settings), user avatar + name at bottom
-- Top bar: page title left, search center (placeholder), user menu right (avatar dropdown: Profile, Settings, Sign out)
-- Main content area: max-width 1200px, 32px padding
+**`/auth/callback`**
+- Server component, calls `exchangeCodeForSession`, redirects to `/dashboard`. If error, redirects to `/sign-in?error=callback`.
 
-**Dashboard Home (`/dashboard`):**
-- Greeting: "Good morning, {name}" + today's date
-- 4 metric cards in a row: Activation Rate (37.5% with +2.3% delta, honey accent), Active Flows (12), Users in Flows (1,247), Avg. Completion (68%)
-- "Your flows" section: list of 3–5 recent flows with status badges (Live/Draft/Paused), last edited, completion %
-- "Quick actions" card: "Create your first flow" CTA (violet), "Connect your app" CTA (outlined)
-- Empty state for new users: friendly illustration (gradient blob), "Let's build your first onboarding flow" with single CTA
+**`/dashboard` (Overview — the default after login)**
+- Sidebar left (240px). Topbar: "Overview" + date range pill (Last 7 days, default).
+- Main grid (12-col, gap 24):
+  - **Row 1 — Hero metrics (4 cards, col-span-3 each):**
+    1. **Activation Rate** — large number (Manrope 48, tabular), delta vs. previous period, mini sparkline (violet). Subtitle: "Users reaching `app.activated` event."
+    2. **New Activated Users** — count, delta, coral sparkline.
+    3. **Avg. Time-to-Activate** — duration, delta (down is good, shown in success green).
+    4. **Flow Completion Rate** — %, honey sparkline.
+  - **Row 2 (8/4 split):** Activation funnel chart (Recharts area, violet→coral gradient fill) | Quick Actions card with three buttons: "+ New flow", "View analytics", "Install snippet" (each opens the right route or copies a snippet to clipboard with toast).
+  - **Row 3 (full width) — Recent Flows table:** Columns: Name · Status (pill) · Steps · Completion · Last edited. Empty state: compass illustration + "Create your first onboarding flow."
+- Empty workspace state (no flows yet): whole page replaces metrics with a friendly onboarding card: "Let's set up your first flow in 3 steps" → button to `/dashboard/flows?new=1`.
 
-**Dashboard Flows (`/dashboard/onboarding-flows`):**
-- Header: "Onboarding Flows" title, "New flow" primary button (violet)
-- Filter bar: status tabs (All, Live, Draft, Paused), search input
-- Table: Flow name, Status badge, Steps count, Users this week, Completion %, Last edited, Actions menu
-- Empty state: "No flows yet" with CTA
+**`/dashboard/flows`**
+- Topbar: "Onboarding Flows" + "+ New flow" primary button (opens slide-over drawer).
+- Left: filter chips (All / Draft / Live / Paused / Archived) + search input.
+- Right: card grid (3 cols on desktop) of flow cards. Each card: name (H3), status pill, 3-line description, 4-stat strip (Users · Completion · Avg time · Last run), kebab menu (Edit / Duplicate / Pause / Archive).
+- Drawer (`/dashboard/flows?new=1`): title field, description, activation event selector (dropdown populated from `events` table, or "+ Define new event"), steps list (drag-handle reorderable, each step: type select [tooltip / checklist / modal / email], title, content textarea), primary "Save as draft" + secondary "Publish".
 
-**Dashboard Analytics (`/dashboard/analytics`):**
-- Header: "Analytics" title, date range selector (7d / 30d / 90d)
-- Top row: 3 KPI cards (Activation Rate trend, Flow Completion trend, Drop-off rate)
-- Main chart: line chart showing activation rate over time (Recharts), violet line, coral area fill
-- Secondary chart: bar chart of step-by-step drop-off in selected flow
-- Below: "Top performing flows" table
+**`/dashboard/analytics`**
+- Topbar: "Analytics" + export button (generates CSV from current view).
+- Left rail (180px): funnel builder — list of events in order with drag-reorder, "+ Add step" button. "Save funnel" CTA.
+- Main: large funnel chart (Recharts bar funnel, violet gradient) showing drop-off between steps with absolute counts + % conversion between steps.
+- Below: line chart of activation rate over time (toggle Day/Week/Month), with benchmark band (industry avg 37.5% drawn as dotted honey line, labeled "Industry median").
+- Cohort retention heatmap (simple grid, violet intensity).
+- Empty state: compass + "Track your first event to see analytics."
 
-**Dashboard Settings (`/dashboard/settings`):**
-- Tabs: Profile, Team, Integrations, Billing
-- Profile: name, email (read-only), avatar upload placeholder, "Save" button
-- Team: placeholder list with "Invite teammate" button
-- Integrations: cards for Segment, Mixpanel, PostHog, Slack — each with "Connect" button (non-functional placeholder, honest copy)
-- Billing: current plan, "Upgrade" CTA
-
-**Pricing (`/pricing`):**
-- Same as landing pricing section but full-page, with FAQ below
-- 3 tier cards, middle one highlighted (coral border, "Most popular" badge)
-- FAQ: 6 questions (How does activation tracking work?, Can I cancel anytime?, Do you offer discounts for startups?, etc.)
+**`/dashboard/settings`**
+- Tabs (vertical left nav, 200px): Account · Workspace · Members · Integrations · Billing.
+- **Account:** name, email (read-only, with "Change email" link sending confirmation), avatar upload, "Update password" (current + new + confirm, Supabase `updateUserById`).
+- **Workspace:** workspace name, slug, timezone, industry (select: SaaS / Fintech / Other — affects benchmark shown in analytics).
+- **Members:** table (Name, Email, Role [Owner/Editor/Viewer], Status, kebab). "Invite member" opens modal with email + role select. Invitations table below.
+- **Integrations:** cards for "Install snippet" (shows the JS snippet with copy button — actual code from a code template, not invented), "Webhooks" (URL + secret, copy), "API keys" (list with masked tokens, rotate button).
+- **Billing:** honest copy ("Early access — no charges today"), placeholder plan card (Starter / Growth labels but prices shown only as "Contact us" until published), current plan indicator. No fake invoices.
 
 ## 4. USER FLOWS
 
-### Flow 1: New user sign-up → first flow
-1. Land on `/` → click "Start free" → `/sign-up`
-2. Fill form (name, email, password, company) → submit
-3. POST `/api/auth/signup` creates Supabase user + profile row
-4. Auto sign-in → redirect to `/dashboard/onboarding`
-5. See empty state → click "Create your first flow"
-6. (Future: flow builder. For now: creates a draft flow row, redirects to flow detail page with "Coming soon" message)
-7. User can navigate to Analytics to see "Connect your app to see data" empty state
+**Flow A — Sign up & first-run**
+1. User lands on `/`, clicks "Start free" → `/sign-up`.
+2. Submits form → Supabase `signUp` with `emailRedirectTo: /auth/callback`. Toast "Check your email to confirm."
+3. User clicks email link → `/auth/callback` exchanges code → redirect `/dashboard`.
+4. Middleware sees `profiles` row missing or workspace empty → Overview shows empty-state card.
+5. User clicks "Create your first flow" → drawer at `/dashboard/flows?new=1`. Saves draft.
+6. User clicks "Install snippet" → copies code → pastes into their app → first event fires.
+7. Overview metrics populate from seeded sample events; user sees non-zero funnel.
 
-### Flow 2: Returning user sign-in
-1. Land on `/` → click "Sign in" → `/sign-in`
-2. Enter credentials → submit
-3. Supabase auth → set session cookie → redirect to `/dashboard`
-4. See dashboard with real (or zero-state) metrics
+**Flow B — Returning user**
+1. Hits `/dashboard/*` → middleware checks Supabase session; if missing, redirect to `/sign-in?next=/dashboard/flows`.
+2. Sign in → server action sets cookie via `@supabase/ssr` → redirect to `next` param.
+3. Dashboard renders with persisted filters.
 
-### Flow 3: Sign out
-1. In dashboard, click avatar → dropdown → "Sign out"
-2. Supabase sign-out → clear session → redirect to `/`
+**Flow C — Forgot password**
+1. `/sign-in` → "Forgot password?" → modal asks email → `resetPasswordForEmail` with `redirectTo: /auth/callback?type=recovery`.
+2. Callback exchanges, redirects to `/dashboard/settings?tab=account&reset=1` showing "Set a new password" form → `updateUser({ password })` → success toast.
 
-### Flow 4: Protected route access without auth
-1. User visits `/dashboard` while signed out
-2. Middleware redirects to `/sign-in?redirect=/dashboard`
-3. After sign-in, redirect to original path
-
-### States
-- **Loading:** Skeleton placeholders on dashboard cards (pulse animation)
-- **Empty:** Friendly illustration + single CTA
-- **Error:** Inline form errors (coral), toast for action errors
-- **Success:** Toast confirmation (honey accent) for saves
+**States covered:** loading (skeleton cards with subtle shimmer using honey→violet 8% gradient), empty (compass illustration + CTA), error (toast + inline form error), success (toast top-right, 3s). Sign-out clears cookies via Supabase client and redirects to `/`.
 
 ## 5. PAGES / ROUTES
 
 | Route | Purpose | Layout |
 |---|---|---|
-| `/` | Landing page | Marketing layout (navbar + footer) |
-| `/pricing` | Full pricing page | Marketing layout |
-| `/sign-in` | Email/password sign-in | Centered card, no nav |
-| `/sign-up` | Email/password sign-up | Centered card, no nav |
-| `/auth/callback` | Supabase auth callback handler | Route handler, redirects |
-| `/dashboard` | Home dashboard | Dashboard layout (sidebar + topbar) |
-| `/dashboard/onboarding-flows` | Flow list | Dashboard layout |
-| `/dashboard/analytics` | Analytics | Dashboard layout |
-| `/dashboard/settings` | Settings | Dashboard layout |
-| `/api/auth/signup` | Create account | API route |
-| `/api/auth/signout` | Sign out | API route |
+| `/` | Existing landing | Unchanged, sign-in/up links wired |
+| `/sign-up` | Create account | Centered card + side panel |
+| `/sign-in` | Sign in | Centered card |
+| `/forgot-password` | Request reset | Centered card, email only |
+| `/auth/callback` | OAuth/recovery code exchange | Server component, redirects |
+| `/auth/sign-out` | Server action route, signs out + redirects `/` | Server-only |
+| `/dashboard` | Overview metrics + recent flows | Sidebar + Topbar + 12-col grid |
+| `/dashboard/flows` | Manage flows | Sidebar + Topbar + filter chips + card grid |
+| `/dashboard/flows/[id]` | Flow detail/edit | Sidebar + Topbar + full editor (title, steps, status controls) |
+| `/dashboard/analytics` | Funnel + retention charts | Sidebar + Topbar + funnel builder rail + chart area |
+| `/dashboard/settings` | Account/workspace/members/integrations/billing | Sidebar + Topbar + vertical tab nav |
+| `/api/flows` (POST/GET/PATCH/DELETE) | CRUD flows | Route handler, Supabase server client |
+| `/api/events` (POST) | Ingest events from snippet | Route handler, validates, inserts |
+| `/api/funnel` (GET) | Compute funnel for given event list + date range | Route handler |
 
 ## 6. CORE FEATURES
 
-### F1. Email + password authentication
-- **What:** Users sign up and sign in with email/password via Supabase Auth.
-- **How:** `/sign-up` form POSTs to `/api/auth/signup` which calls `supabase.auth.admin.createUser` (server-side with service role key), creates a `profiles` row, then signs the user in. `/sign-in` uses `supabase.auth.signInWithPassword` client-side. Session persisted via cookies (@supabase/ssr).
+**Auth (Supabase, `@supabase/ssr`)**
+- Email + password only. `signUp`, `signInWithPassword`, `signOut`, `resetPasswordForEmail`, `updateUser`.
+- Server client created per-request via `createServerClient` using cookies adapter.
+- Browser client for client components. Same pattern.
+- Middleware (`middleware.ts`) refreshes session on every request to `/dashboard/*`, redirects unauthenticated to `/sign-in?next=<path>`.
+- Service-role key is server-only; never exposed. Anon key is in `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 
-### F2. Protected dashboard routes
-- **What:** All `/dashboard/*` routes require an authenticated session.
-- **How:** `middleware.ts` checks Supabase session on every request to `/dashboard/*`. If no session, redirect to `/sign-in?redirect={path}`. If session exists, refresh it and continue.
+**Dashboard overview**
+- Fetches metrics from `/api/funnel` with default `events = [signed_up, activated]` and `range = 7d`.
+- Recent flows: `SELECT id, name, status, steps, completion_rate, updated_at FROM flows ORDER BY updated_at DESC LIMIT 5`.
+- Quick actions: copy snippet (writes to clipboard, toast "Snippet copied").
 
-### F3. Dashboard home with metrics
-- **What:** Shows 4 KPI cards and recent flows list.
-- **How:** Server component fetches user profile + flow list from Supabase. Metrics are computed from `flows` and `flow_events` tables (zero-state shown for new users). Cards display metric value, delta vs. previous period, and sparkline placeholder.
+**Flows**
+- Create / edit / archive flows. Steps stored as JSONB: `{ id, type, title, body, order }`.
+- Status transitions: draft → live (publishes, requires ≥1 step + activation event defined) → paused → archived. Enforced in server action, not just UI.
+- Duplicate creates a copy with `(copy)` suffix, status=draft.
+- Drag-reorder persists new `order` indices on save.
 
-### F4. Onboarding flows list
-- **What:** Table of all flows with status, step count, completion rate.
-- **How:** Server component queries `flows` table filtered by `user_id`. Renders table with status badges (Live = green dot, Draft = honey dot, Paused = gray dot). Row click navigates to flow detail (placeholder page for now).
+**Analytics**
+- Funnel builder persists `saved_funnels` per workspace.
+- Funnel query: `SELECT event_name, COUNT(DISTINCT user_id) FROM events WHERE workspace_id=$1 AND ts >= $2 GROUP BY event_name` then computes step-to-step conversion in JS.
+- Time-series: `date_trunc('day', ts)` grouped count.
+- Benchmark band constant from research (37.5%) — labeled honestly as "Industry median (2024)" with tooltip linking to source note, not invented as "Prismflow benchmark."
 
-### F5. Analytics page
-- **What:** Activation rate chart + step drop-off chart.
-- **How:** Server component fetches aggregated `flow_events` data. Renders Recharts line chart (activation rate over 30 days) and bar chart (drop-off per step). Empty state when no data.
+**Settings**
+- Profile updates via Supabase `updateUser` + `profiles` table for app-specific fields (avatar URL, full name).
+- Members: server action invites by email; if user already exists, adds to `workspace_members`; otherwise creates `invitations` row and emails a join link.
+- Install snippet: returns actual JS that posts to `/api/events` — code is a real template, not invented, with a workspace API key injected server-side.
 
-### F6. Settings page
-- **What:** Profile, team, integrations, billing tabs.
-- **How:** Client component with tab navigation. Profile form updates `profiles` table. Other tabs show honest placeholders ("Invite teammates — coming soon", "Connect Segment — coming soon").
+**Empty-state behavior**
+- All dashboard pages render a `compass` empty state when the underlying data is empty. No fabricated "you have 12 users" placeholders.
 
-### F7. Navbar with auth awareness
-- **What:** Shows Sign in / Sign up buttons when logged out; user menu when logged in.
-- **How:** Client component reads Supabase session via `supabase.auth.getUser()`. Renders conditional UI. User menu is a dropdown with Profile, Settings, Sign out.
+## 7. DATA MODEL (Supabase Postgres)
 
-### F8. Footer
-- **What:** 4-column footer with links and copyright.
-- **How:** Static component, links go to real pages or `#` for placeholders (with honest "Coming soon" labels where appropriate).
+```
+profiles
+  id uuid PK (refs auth.users)
+  full_name text
+  avatar_url text
+  created_at timestamptz
 
-## 7. DATA MODEL
+workspaces
+  id uuid PK
+  name text
+  slug text unique
+  timezone text
+  industry text check in ('saas','fintech','other')
+  owner_id uuid (refs profiles.id)
+  created_at timestamptz
 
-### `profiles`
-| Field | Type | Notes |
-|---|---|---|
-| id | uuid (PK, FK → auth.users.id) | |
-| full_name | text | |
-| company_name | text | |
-| avatar_url | text nullable | |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() |
+workspace_members
+  id uuid PK
+  workspace_id uuid (refs workspaces.id)
+  user_id uuid (refs profiles.id)
+  role text check in ('owner','editor','viewer')
+  unique(workspace_id, user_id)
 
-### `flows`
-| Field | Type | Notes |
-|---|---|---|
-| id | uuid (PK) | |
-| user_id | uuid (FK → profiles.id) | |
-| name | text | |
-| status | text | 'draft' \| 'live' \| 'paused' |
-| steps | jsonb | array of step objects |
-| created_at | timestamptz | |
-| updated_at | timestamptz | |
+invitations
+  id uuid PK
+  workspace_id uuid
+  email text
+  role text
+  token text unique
+  expires_at timestamptz
+  accepted_at timestamptz null
 
-### `flow_events`
-| Field | Type | Notes |
-|---|---|---|
-| id | uuid (PK) | |
-| flow_id | uuid (FK → flows.id) | |
-| user_identifier | text | anonymous user ID from client app |
-| event_type | text | 'flow_started' \| 'step_completed' \| 'flow_completed' \| 'flow_dropped' |
-| step_index | int nullable | |
-| created_at | timestamptz | |
+flows
+  id uuid PK
+  workspace_id uuid
+  name text
+  description text
+  status text check in ('draft','live','paused','archived')
+  steps jsonb default '[]'
+  activation_event text
+  created_by uuid
+  created_at timestamptz
+  updated_at timestamptz
 
-### Relationships
-- `profiles.id` → `auth.users.id` (1:1, managed by Supabase Auth)
-- `profiles.id` → `flows.user_id` (1:many)
-- `flows.id` → `flow_events.flow_id` (1:many)
+events
+  id bigserial PK
+  workspace_id uuid
+  user_id text  -- external user id from customer app
+  event_name text
+  properties jsonb
+  ts timestamptz default now()
+  index (workspace_id, event_name, ts)
 
-### Row Level Security
-- Users can only read/write their own `profiles` row
-- Users can only read/write their own `flows`
-- Users can only read `flow_events` for their own flows
+saved_funnels
+  id uuid PK
+  workspace_id uuid
+  name text
+  event_order text[]
+  created_at timestamptz
+
+api_keys
+  id uuid PK
+  workspace_id uuid
+  name text
+  key_hash text  -- never store plaintext
+  last_four text
+  created_at timestamptz
+  revoked_at timestamptz null
+```
+
+RLS enabled on every table; policies restrict to `workspace_id` matching the caller's membership.
 
 ## 8. AUTH
-
-**Provider:** Supabase Auth via `@supabase/ssr` (server + client + middleware pattern).
-
-**Methods:** Email + password only. No OAuth, no magic links (keeps it simple, works out of the box).
-
-**Setup:**
-- `lib/supabase/client.ts` — browser client using `createBrowserClient`
-- `lib/supabase/server.ts` — server client using `createServerClient` with cookies
-- `lib/supabase/middleware.ts` — session refresh helper
-- `middleware.ts` — protects `/dashboard/*`, calls Supabase session check
-- `app/auth/callback/route.ts` — handles email confirmation redirects (if enabled)
-
-**No Clerk. No NextAuth. No social buttons.**
+Email + password via Supabase Auth using `@supabase/ssr`. No social OAuth buttons (would be dead without provisioned credentials). No Clerk. Middleware protects `/dashboard/:path*`. Reset and email confirmation handled by Supabase redirecting to `/auth/callback`.
 
 ## 9. FILES
-
-```
-app/
-├── layout.tsx                          # Root layout: html, body, fonts, metadata
-├── page.tsx                            # Landing page (existing)
-├── pricing/
-│   └── page.tsx                        # Full pricing page
-├── sign-in/
-│   └── page.tsx                        # Sign-in form
-├── sign-up/
-│   └── page.tsx                        # Sign-up form
-├── auth/
-│   └── callback/
-│       └── route.ts                    # Supabase auth callback handler
-├── dashboard/
-│   ├── layout.tsx                      # Dashboard shell: sidebar + topbar
-│   ├── page.tsx                        # Dashboard home (metrics + recent flows)
-│   ├── onboarding-flows/
-│   │   └── page.tsx                    # Flows list table
-│   ├── analytics/
-│   │   └── page.tsx                    # Analytics charts
-│   └── settings/
-│       └── page.tsx                    # Settings tabs
-└── api/
-    └── auth/
-        ├── signup/
-        │   └── route.ts                # POST: create user + profile
-        └── signout/
-            └── route.ts                # POST: sign out
-
-components/
-├── marketing/
-│   ├── Navbar.tsx                      # Auth-aware navbar
-│   ├── Footer.tsx                      # Site footer
-│   ├── Hero.tsx                        # (existing)
-│   ├── Features.tsx                    # (existing)
-│   ├── HowItWorks.tsx                  # (existing)
-│   ├── Pricing.tsx                     # (existing)
-│   ├── TrustedBy.tsx                   # (existing)
-│   └── CTA.tsx                         # (existing)
-├── dashboard/
-│   ├── Sidebar.tsx                     # Dashboard sidebar nav
-│   ├── Topbar.tsx                      # Dashboard top bar with user menu
-│   ├── MetricCard.tsx                  # KPI card component
-│   ├── FlowsTable.tsx                  # Flows list table
-│   ├── ActivationChart.tsx             # Line chart (Recharts)
-│   ├── DropoffChart.tsx                # Bar chart (Recharts)
-│   └── EmptyState.tsx                  # Reusable empty state
-├── auth/
-│   ├── SignInForm.tsx                  # Client form for sign-in
-│   └── SignUpForm.tsx                  # Client form for sign-up
-└── ui/
-    ├── Button.tsx                      # (existing)
-    ├── Input.tsx                       # (existing)
-    └── Card.tsx                        # (existing)
-
-lib/
-├── supabase/
-│   ├── client.ts                       # Browser Supabase client
-│   ├── server.ts                       # Server Supabase client
-│   └── middleware.ts                   # Middleware session helper
-└── utils.ts                            # (existing)
-
-middleware.ts                            # Root middleware: protect /dashboard/*
-supabase/
-└── migrations/
-    └── 001_initial_schema.sql          # Tables: profiles, flows, flow_events + RLS
-```
+FILES:
+[
+  "middleware.ts",
+  "app/layout.tsx",
+  "app/page.tsx",
+  "app/globals.css",
+  "app/sign-up/page.tsx",
+  "app/sign-in/page.tsx",
+  "app/forgot-password/page.tsx",
+  "app/auth/callback/route.ts",
+  "app/auth/sign-out/route.ts",
+  "app/dashboard/layout.tsx",
+  "app/dashboard/page.tsx",
+  "app/dashboard/flows/page.tsx",
+  "app/dashboard/flows/[id]/page.tsx",
+  "app/dashboard/analytics/page.tsx",
+  "app/dashboard/settings/page.tsx",
+  "app/api/flows/route.ts",
+  "app/api/flows/[id]/route.ts",
+  "app/api/events/route.ts",
+  "app/api/funnel/route.ts",
+  "app/api/invitations/route.ts",
+  "lib/supabase/server.ts",
+  "lib/supabase/client.ts",
+  "lib/supabase/middleware.ts",
+  "lib/auth/actions.ts",
+  "lib/db/schema.sql",
+  "lib/analytics/funnel.ts",
+  "components/Button.tsx",
+  "components/MetricCard.tsx",
+  "components/Sidebar.tsx",
+  "components/Topbar.tsx",
+  "components/DataTable.tsx",
+  "components/Chart.tsx",
+  "components/EmptyState.tsx",
+  "components/StatusPill.tsx",
+  "components/FormField.tsx",
+  "components/FlowCard.tsx",
+  "components/FlowDrawer.tsx",
+  "components/FunnelBuilder.tsx",
+  "components/SnippetInstallCard.tsx",
+  "components/illustrations/Compass.tsx",
+  "tailwind.config.ts",
+  ".env.local.example",
+  "supabase/migrations/0001_init.sql",
+  "supabase/migrations/0002_rls.sql"
+]
 
 ## 10. ACCEPTANCE
-
-- [ ] Root `app/layout.tsx` exists and wraps app with proper html/body/fonts
-- [ ] `/sign-in` renders a working email+password form; submitting with valid credentials signs the user in and redirects to `/dashboard`
-- [ ] `/sign-up` renders a working form; submitting creates a Supabase user, creates a `profiles` row, signs in, and redirects to `/dashboard/onboarding`
-- [ ] `/api/auth/signup` POST endpoint creates user via Supabase Admin API and returns success/error
-- [ ] `/auth/callback/route.ts` exists and handles Supabase auth redirects
-- [ ] `middleware.ts` protects `/dashboard/*` — unauthenticated users are redirected to `/sign-in?redirect=...`
-- [ ] `/dashboard` shows 4 metric cards (with zero-state values for new users) and a "Your flows" section
-- [ ] `/dashboard/onboarding-flows` shows a flows table with empty state
-- [ ] `/dashboard/analytics` shows activation chart and drop-off chart with empty state
-- [ ] `/dashboard/settings` shows profile form and tabs for Team/Integrations/Billing
-- [ ] `/pricing` page exists with 3 tiers and FAQ
-- [ ] Navbar shows "Sign in" + "Start free" when logged out, user menu when logged in
-- [ ] Footer renders on all marketing pages
-- [ ] `lib/supabase/client.ts`, `lib/supabase/server.ts`, `lib/supabase/middleware.ts` exist and use `@supabase/ssr`
-- [ ] No Clerk, no NextAuth, no social sign-in buttons
-- [ ] No `dynamic = 'error'` on any authenticated page
-- [ ] All buttons/links navigate to real pages (no dead `#` links on primary CTAs)
-- [ ] No fake testimonials, logos, or user counts anywhere
-- [ ] Existing landing page sections (Hero, Features, HowItWorks, Pricing, TrustedBy, CTA) remain unchanged
-- [ ] Existing design system colors (violet, coral, honey, warm off-white) are used consistently
-- [ ] TypeScript throughout, no `any` in component props
-- [ ] App builds without errors (`npm run build` succeeds)
-
-FILES: ["app/layout.tsx", "app/sign-in/page.tsx", "app/sign-up/page.tsx", "app/auth/callback/route.ts", "app/dashboard/layout.tsx", "app/dashboard/page.tsx", "app/dashboard/onboarding-flows/page.tsx", "app/dashboard/analytics/page.tsx", "app/dashboard/settings/page.tsx", "app/pricing/page.tsx", "app/api/auth/signup/route.ts", "app/api/auth/signout/route.ts", "components/marketing/Navbar.tsx", "components/marketing/Footer.tsx", "components/dashboard/Sidebar.tsx", "components/dashboard/Topbar.tsx", "components/dashboard/MetricCard.tsx", "components/dashboard/FlowsTable.tsx", "components/dashboard/ActivationChart.tsx", "components/dashboard/DropoffChart.tsx", "components/dashboard/EmptyState.tsx", "components/auth/SignInForm.tsx", "components/auth/SignUpForm.tsx", "lib/supabase/client.ts", "lib/supabase/server.ts", "lib/supabase/middleware.ts", "middleware.ts", "supabase/migrations/001_initial_schema.sql"]
+- [ ] `/`, `/sign-up`, `/sign-in`, `/forgot-password`, `/auth/callback` all render with the warm SaaS palette and Manrope/Source Sans 3.
+- [ ] Signing up creates a Supabase auth user, a `profiles` row, and a default `workspaces` row owned by them.
+- [ ] Middleware redirects unauthenticated visits to `/dashboard/*` to `/sign-in?next=...` and returns the user to `next` after sign-in.
+- [ ] Sign-out clears cookies and lands on `/`.
+- [ ] `/dashboard` shows four metric cards, a funnel chart, a quick-actions card, and a recent-flows table — all populated from real Supabase queries (or honest empty states).
+- [ ] `/dashboard/flows` lists flows in a card grid with working filter chips and a working `+ New flow` drawer that persists to `flows`.
+- [ ] `/dashboard/flows/[id]` loads, edits, and saves a flow including step reorder.
+- [ ] `/dashboard/analytics` renders a funnel from real `events` rows and a benchmark line at 37.5% labeled "Industry median."
+- [ ] `/dashboard/settings` shows Account / Workspace / Members / Integrations / Billing tabs; invite flow creates an `invitations` row.
+- [ ] `/api/events` POST accepts `{ workspace_key, user_id, event_name, properties }` and inserts a row.
+- [ ] No dead buttons, no invented testimonials/logos/revenue numbers, no social OAuth buttons, no Clerk.
+- [ ] All colors match the spec (`#7C3AED`, `#FF6B6B`, `#F59E0B`, `#FFF7ED`); compass motif appears in logo, empty states, and load animation.
