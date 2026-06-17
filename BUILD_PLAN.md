@@ -1,131 +1,439 @@
-# Gridion Build Plan — New Pages
+# Build Plan: Gridion Marketing Pages (Case Studies + Pricing)
 
 ## 1. PRODUCT
 
-Gridion is an automation-first pipeline builder for creative agencies. It replaces the 6-tool stack (PM tool + file storage + chat + approvals + invoicing + spreadsheets) with a single pipeline that auto-advances jobs through intake → brief → draft → review → approval → delivery, so nothing falls through the cracks. The primary user is a Project Manager or Operations Manager at a 10–40 person digital agency doing $2M–$20M in annual billings, who is currently losing 10+ hours/week to status meetings, Slack threads, and "where is the latest file?" pings. The five additions in this build give that operator a public-facing sales surface (Services, Case Studies, Proposals, enhanced Pricing) to win new client work, plus a private Close Playbook inside the dashboard to run those wins on a consistent framework.
+Gridion adds two trust-building marketing surfaces — `/case-studies` and `/pricing` — to its existing Next.js 15 app for Project Managers at 10–40 person digital agencies. The ICP is time-poor and skeptical of fluff: they want proof the tool saves hours and a clear price before booking a demo. The case study uses **modeled benchmarks** (transparent, not fabricated) to show the value proposition; the pricing page shows the three tiers with a feature matrix so an ops lead can self-serve the decision. Both pages must respect the existing brand (frontier palette + Satoshi/Archivo Black) while following the calm-system layout pattern (generous spacing, sky-blue accents for "trust" surfaces like pricing) already established in the design system.
 
 ## 2. WHO IT'S FOR
 
-**ICP:** Project/Operations leaders at 10–40 person digital agencies ($2M–$20M billings) using 4+ tools to coordinate work. Time-poor, allergic to agency-bro jargon, allergic to "AI will change everything" fluff. They want one screen that tells them the truth about every active job, and they want their BD team to stop reinventing the sales deck.
-
-**Tone implications:**
-- Copy is declarative, lowercase eyebrows, sentence-case body, no exclamation marks.
-- Numbers and structure over adjectives ("3 pipeline stages", not "powerful features").
-- Honest framing throughout: case studies are labeled "Projected scenarios, not customer results"; proposal templates are previews, not "AI-generated proposals"; playbook is a framework, not "guaranteed closes".
-- No invented logos, ratings, MRR, or testimonial quotes anywhere. New product, no customers yet.
+Primary user: a **Project Manager or Operations Lead at a 10–40 person digital agency** doing $2M–$20M in billings. They coordinate 5–15 active client projects, juggle status updates, approvals, and handoffs in Slack/Notion/email, and lose ~10–15 hrs/week to coordination busywork. Secondary: the **agency owner/founder** who signs the PO and wants to see ROI in hours/utilization, not vanity metrics. Tone implications:
+- Copy leads with **hours reclaimed** and **utilization %**, not "transformation" or "synergy."
+- No invented customer logos, no "trusted by 10,000 agencies." Stats are labeled "modeled from industry benchmarks."
+- Pricing is **per-seat** (matches how agencies think about cost) and shown immediately — no "Contact us" gate on Starter/Growth.
+- One primary CTA per page, no decision fatigue.
 
 ## 3. LOOK & FEEL
 
-**Existing design system (use as-is, do not redefine):**
-- **Palette tokens** (from `tailwind.config.ts`): `canvas` (ivory background), `ink` (charcoal text), `line` (hairline borders), `accent` (muted gold for emphasis and active states), `accent-deep` (burgundy for the single most important affordance per page).
-- **Typography:** Serif display family (Canela-style, used for H1/H2 and prices) + sans body family (Neue Haas-style, used for everything else). Eyebrows are uppercase, tracked, sans, `text-[11px]`. Body is 15–16px, line-height relaxed.
-- **Spacing:** Editorial — 96–128px section padding on desktop, 56–72px on mobile. Cards separated by hairlines, not shadows.
-- **Components in the existing system:** `Button` (primary = ink fill, secondary = outline, ghost = text-only), `Card` (1px `border-line`, no radius or 2px radius), `Eyebrow` (uppercase label), `Section` (id + eyebrow + headline + subhead + slot).
-- **Signal motif:** a thin horizontal line with one diamond/plus tick — used as a section divider, as a bullet, and as the "in-stock / active" indicator. Reuse the existing `<Signal />` if present; if not, inline as a 12px-wide SVG.
-- **Iconography:** 1.25px stroke line icons, monochrome `ink`, 16–20px.
-- **Motion:** 180–220ms ease-out for hover and accordion; no bounce, no parallax, no scroll-jacking. Annual toggle slides a 2px accent-gold underline; accordion chevron rotates 90°.
+### Visual system (extends existing tokens — do not redefine)
 
-### Screens, top to bottom
+**Palette (frontier + calm-system accents for trust surfaces):**
+- Background base: `#0a0e17` (near-black) for both pages
+- Surface elevated: `#111723` (cards)
+- Surface subtle: `#1a2030` (table rows, dividers)
+- Text primary: `#f5f5f7`
+- Text secondary: `#9ca3af`
+- Text muted: `#6b7280`
+- Brand flame: `#ff6b35` (primary CTAs on hero/footer)
+- Brand magenta: `#e040fb` (case-study section accents)
+- Brand acid: `#76ff03` (stat-card numbers, "saved" indicators)
+- Trust accent (calm-system, used on pricing only): `#3B6B8C` (sky-blue) for table headers, selected-tier ring, FAQ icons
+- Pricing accent: `#E8A85B` (sand) for Enterprise tier highlight, "Most Popular" ribbon
 
-**`/services` — Service Packages**
-1. **Page header (centered, 96px top padding).** Eyebrow `SERVICES` · H1 serif "Three ways to run your pipeline." · subhead "Pick the seat count that matches your studio. Switch any time."
-2. **Billing context strip.** Small inline note: "Billed monthly per active seat. Inactive seats are free." — sits below subhead, gold underline accent on "free".
-3. **Three-up pricing grid** (max-w-6xl, 24px gap, middle card is 8px taller and has a 1px `accent` top border and a small "Most teams pick this" badge in `accent-deep`).
-   - **Card 1 — Studio, $49 / seat / mo.** Eyebrow `STUDIO` · serif price `$49` with `/seat/mo` in 14px sans underneath · 2-line description "For solo producers and 2–5 person studios getting their first pipeline off the ground." · feature list (10 items, each a single line ending in a small signal tick): unlimited active jobs, 3 pipeline templates, client approval portal, 5GB file storage, email support, single workspace, etc. · CTA: secondary `Button` "Start with Studio" → `/sign-up?plan=studio`.
-   - **Card 2 — Agency, $79 / seat / mo.** Same structure. Description: "For 6–40 person agencies running multiple client pipelines at once." Features: everything in Studio plus unlimited workspaces, custom pipeline templates, 100GB storage, Slack/Linear webhooks, priority support, audit log, SSO via Google. CTA: primary `Button` "Start with Agency" → `/sign-up?plan=agency`.
-   - **Card 3 — Enterprise, Custom.** Price is the word "Custom" in serif. Description: "For 40+ person agencies and holding companies with security and procurement needs." Features: everything in Agency plus dedicated CSM, custom MSA/SLA, SCIM provisioning, on-prem file storage option, 99.9% uptime SLA, custom integrations. CTA: secondary `Button` "Talk to sales" → `/contact?topic=enterprise`.
-4. **Comparison footnote.** 4-column "All plans include" strip (signal tick + label): SOC 2 Type II in progress, daily backups, EU/US data residency, no per-job fees.
-5. **FAQ teaser.** "Common questions" link with signal tick → scrolls to in-page FAQ (uses the same FAQ component as the Pricing page; reuse the data array).
+**Typography:** Satoshi (400/500/700) for body and UI; Archivo Black (700) for hero H1 and stat numbers. Display tracking: `-0.02em`. Body line-height: 1.6.
 
-**`/case-studies` — The Gridion Impact**
-1. **Page header.** Eyebrow `CASE STUDIES` · H1 serif "The Gridion impact." · subhead "Three projected scenarios based on the average 10–40 person digital agency."
-2. **Disclaimer band** (1px `accent-deep` left border, ivory background, 16px padding). Text: "These are illustrative scenarios, not customer results. Numbers are modeled from industry benchmarks and have not been validated by a Gridion customer."
-3. **Three scenario sections** (full-width, stacked, each 1200px max, separated by hairlines). Each section is a 2-column grid (5/7 split on desktop, stacked on mobile):
-   - **Left rail (sticky on scroll):** "SCENARIO 01" eyebrow (or 02, 03) · agency profile card: name, headcount range, billings range, primary services, tools they were using. A small `PROJECTED` badge (uppercase, 11px, `accent-deep` text, 1px `accent-deep` border, 2px radius).
-   - **Right content:** Three sub-blocks, each a tiny eyebrow + 1–2 sentence body. `THE CHALLENGE` (2–3 sentences describing the pain — 10+ hrs/week coordination, scattered approvals, version chaos, etc.). `THE APPROACH` (2–3 sentences describing how they'd set up Gridion — which pipeline template, which integrations, which automations). `THE PROJECTED OUTCOME` (3 bullet metrics, each `metric + delta`, e.g. "Coordination overhead: −8 hrs/week", "Approval cycle time: 4.2 days → 1.5 days", "Tool spend: $14.3K/yr → $6.8K/yr". Each metric is preceded by a signal tick).
-4. **Footer CTA band.** "Want to model your own scenario?" → secondary `Button` "Book a 30-min mapping call" → `/contact?topic=scenario`.
+**Spacing/layout:** Calm-system rhythm — section vertical padding `py-24 md:py-32`, container `max-w-7xl mx-auto px-6`. Cards `rounded-2xl`, padding `p-8 md:p-10`. Generous whitespace; no busy backgrounds. Subtle 1px border `border-white/5` on elevated surfaces.
 
-**`/proposals` — Proposal Templates**
-1. **Page header.** Eyebrow `PROPOSALS` · H1 serif "Three proposal templates." · subhead "Open, customize, send. The structure is proven; the words are yours."
-2. **Three template cards** (3-column grid on desktop, stacked on mobile). Each card is a `Card` with a 1px `line` border:
-   - **Top strip:** 12px-tall accent-gold underline (only the leftmost 64px, decorative).
-   - **Eyebrow** `TEMPLATE 01` (or 02, 03) + type label `WEBSITE REDESIGN` (etc).
-   - **Serif H3** "Website Redesign Proposal" (or "Brand Identity Engagement" / "Digital Marketing Retainer").
-   - **2-line description** ("A scoped, fixed-fee engagement with discovery, design, and launch phases.").
-   - **Section preview list** (5 sections, each a small sans line ending in a thin `—` leader and a word count, e.g. "Executive summary — 120 words").
-   - **Footer row:** "Open in editor" icon-link on the left, primary `Button` "Use template" on the right.
-3. **`Use template` behavior:** click opens a centered Dialog (max-w-3xl, ivory background, 1px `line` border) titled "Website Redesign — full outline". The dialog body shows the full section list with prompts under each section header (e.g. "Goals: What business outcome does the client want in 90 days?"). Bottom-right of the dialog: secondary `Button` "Copy outline" + primary `Button` "Close". Clicking Copy fires `navigator.clipboard.writeText(...)` of the full template as markdown, then shows a toast `Outline copied — paste into your doc`.
+**Iconography:** Lucide icons (already in repo) — `Clock`, `CheckCircle2`, `Zap`, `TrendingUp`, `Users`, `HelpCircle`, `ArrowRight`, `Sparkles`. No emoji.
 
-**`/pricing` (enhancement of existing page)**
-1. **Existing pricing cards stay.** Above the cards, add a `BillingToggle` component: two side-by-side text buttons "Monthly" / "Annual · save 20%", with a 2px `accent` underline that slides between them (180ms). When `annual` is active, each price recalculates client-side: `monthly * 12 * 0.8` displayed as a single annual number OR as the equivalent monthly. Add a small `Billed annually` subline under the price when annual is active.
-2. **Below the existing pricing section, add a new section:**
-   - Eyebrow `FAQ` · H2 serif "Common questions." · subhead "If yours isn't here, ask us directly."
-   - 8-question FAQ accordion (reuse `<FaqAccordion />`). Each row: question on the left, `+`/`−` icon on the right, 1px `line` border between rows. Body reveals below with 200ms ease-out. Questions cover: seat counting (active vs inactive), annual vs monthly lock-in, mid-cycle plan changes, data export on cancel, security/compliance, support SLAs, agency vs studio differences, enterprise procurement.
+**Imagery:** No stock photos. The case study page uses an abstract data-visualization SVG (generated as a component): a horizontal stacked-bar showing hours redistributed across categories, plus a donut for utilization. Pricing page has no imagery — pure typographic layout.
 
-**`/dashboard/playbook` (protected)**
-1. **Page header.** Eyebrow `CLOSE PLAYBOOK` · H1 serif "The close framework." · subhead "Five sections. Use them in order, or jump to the one you need for the call you're about to take."
-2. **Section index strip** (horizontal scroll on mobile, inline on desktop). 5 small pills, each a section name: Discovery, Demo, Objections, Pricing, Closing. Clicking a pill scrolls to and expands that section. The pill gets a 1px `accent` border when its section is expanded.
-3. **Five accordion sections** (1px `line` border, 64px between sections). Each section, when expanded, shows:
-   - Section eyebrow + serif H2 title.
-   - Right-aligned ghost `Button` "Copy section" — copies the section body as markdown to clipboard and fires a toast `Section copied`.
-   - Body content, formatted as a mix of short paragraphs and bulleted lists. Real, usable copy — not Lorem Ipsum.
-4. **Section content (written for an agency BD lead closing a new client engagement):**
-   - **Discovery Call Framework.** 6 steps with a one-line purpose and 2–3 sample questions each: (1) Warm-up — establish rapport, 90 seconds max. (2) Context — what changed that triggered this conversation. (3) Current state — what tools/process they use today and where it breaks. (4) Stakeholders — who's involved, who signs. (5) Success criteria — what does done look like in 90 days. (6) Next step — book the demo with a specific date and time, not "we'll be in touch".
-   - **Demo Script.** 4 acts with timing: Opening (5 min, restate the problem they said on the call and confirm), Discovery confirmation (5 min, ask 2 questions to make them feel heard), Demo (25 min, only show the 2–3 pipeline templates relevant to their workflow, never the full product), Close (5 min, recap + book next step).
-   - **Objection Handling.** 5 common objections each with a label, what the prospect actually means, and a 2–3 sentence response: "We're already using Asana/Monday", "It's too expensive for a 5-person agency", "We tried something like this before", "I need to talk to my partner", "Can you send me a deck?". Each response is conversational, not dismissive.
-   - **Pricing Conversation Guide.** 5-step sequence: anchor to the cost of the status quo first, name the price without apology, explain what's included in one breath, pause (don't fill the silence), ask "Does that match what you expected?". Plus a short note on when to offer annual (only when they've already said yes to scope).
-   - **Closing Checklist.** Two-column layout: "Before the close call" (7 items: proposal sent 48h ahead, decision-makers confirmed, current pipeline audit reviewed, pricing page link ready, 3 references available, contract template loaded, success criteria written down) and "On the call" (6 items: restate the problem, walk the proposal section by section, confirm scope and price out loud, ask for the close, send the contract in the same meeting, book the kickoff before hanging up).
+**Motion:** IntersectionObserver fade-up (`opacity 0→1`, `translateY 12px→0`, 400ms ease-out) on each section. FAQ accordion: `max-height` transition 250ms. No parallax, no marquees.
+
+---
+
+### Screen: `/case-studies` (top to bottom)
+
+1. **Top nav** — unchanged. Active link "Case Studies" gets `text-white` + 2px flame underline; others stay `text-gray-400`.
+2. **Hero section** (`pt-32 pb-20`):
+   - Eyebrow chip: `MODEL · 15-PERSON AGENCY` (uppercase, tracking-widest, 12px, acid green)
+   - H1 (Archivo Black, 72px desktop / 48px mobile): "How Agencies Reclaim 10+ Hours/Week with Gridion"
+   - Subhead (Satoshi 400, 20px, text-secondary, max-w-2xl): "A modeled scenario based on Gartner and Forrester workforce-productivity benchmarks, applied to a typical mid-sized digital agency."
+   - Two buttons (gap-4): primary flame-filled `See pricing →` (links to `/pricing`); secondary ghost `Start free trial` (links to `/signup`).
+3. **Case study card** (single full-width card, `bg-[#111723]`, `rounded-2xl`, p-10, border `border-white/5`):
+   - Top-right corner badge: "Modeled from industry benchmarks — illustrative scenario" in a 1px magenta-bordered pill (`text-[#e040fb]`, text-xs)
+   - Title (Archivo Black 40px): "How a 15-person digital agency would eliminate 12 hours/week of coordination busywork"
+   - Meta row: "Scenario modeled · 15 staff · 22 active client projects · 8-week window"
+   - Three sub-sections in a 3-column grid (md:grid-cols-3, gap-6), each with a colored top-border (4px) and lucide icon:
+     - **The Challenge** (flame top-border) — icon `AlertCircle`. 3 bullet items: status-update overhead, approval ping-pong, context-switching between tools. Each bullet: bold lead phrase + 1 sentence.
+     - **The Switch** (magenta top-border) — icon `ArrowRightLeft`. 3 bullets: centralized pipeline, automated handoffs, in-app approval threads.
+     - **The Results** (acid top-border) — icon `TrendingUp`. 3 bullets with **bold numbers**: "12 hrs/week reclaimed per PM", "4.2-day → 1.8-day avg approval cycle", "Billable utilization +9 pts (62% → 71%)". Below each number, a 1-line source tag like "*Modeled from Forrester 2024 Professional Services Benchmark*".
+   - Inline SVG visualization: horizontal stacked bar showing 40 hrs/week redistributed (gray = coordination, flame = billable client work, acid = new business). Caption below: "Hours redistributed per PM per week (modeled)."
+4. **"Your agency could see similar results" stat grid** (`py-24`, bg stays `#0a0e17`):
+   - Section H2 (Archivo Black 40px, centered): "Your agency could see similar results"
+   - Subhead (centered, secondary text): "Modeled outcomes, based on average agency patterns reported in industry research."
+   - 3 stat cards in a grid (`md:grid-cols-3 gap-6`):
+     - Card 1: huge acid-green number `10–14`, label "Hours saved per PM, per week", source tag "Gartner 2024"
+     - Card 2: huge acid-green number `~58%`, label "Faster approval cycles", source tag "Forrester 2024"
+     - Card 3: huge acid-green number `+9 pts`, label "Billable utilization lift", source tag "Agency Benchmarks 2024"
+   - Each card: `bg-[#111723]`, `rounded-2xl`, p-10, lucide icon top-right (muted), big number Archivo Black 72px, label Satoshi 500 18px white, source tag text-xs text-muted.
+5. **CTA section** (`py-24`, bg `#111723`, rounded-2xl, max-w-5xl mx-auto, border `border-flame/20`):
+   - H2: "Ready to reclaim your week?"
+   - Sub: "Start a 14-day free trial. No credit card. Onboard your first pipeline in under an hour."
+   - Two buttons centered: primary flame `Start free trial →`; secondary ghost `Talk to us`.
+   - Button "Talk to us" → `/contact` (new minimal page OR routes to existing `/signup` with `?source=contact` — **decision: route to `/contact` if it exists, else `/signup?source=demo`**; the build agent should check `app/contact/page.tsx` and link to whatever exists; if neither, link to `/signup?source=demo`).
+6. **Footer** — unchanged.
+
+---
+
+### Screen: `/pricing` (top to bottom)
+
+1. **Top nav** — active link "Pricing" gets the active state.
+2. **Hero** (`pt-32 pb-12`):
+   - H1 (Archivo Black 64px): "Simple, transparent pricing for agencies that ship"
+   - Sub: "Per-seat pricing. Cancel anytime. Annual saves 20%." (the annual toggle is implemented as a controlled local state, default annual)
+   - **Billing toggle** (segmented control, centered): "Monthly | Annual (save 20%)" — sky-blue (`#3B6B8C`) background on the selected side.
+3. **Three pricing cards** (`py-12`, grid `md:grid-cols-3 gap-6`):
+   - Card height equalized; "Growth" card is elevated: `border-2 border-[#3B6B8C]`, `scale-[1.02]`, "Most Popular" sand-colored ribbon top-right.
+   - **Starter** — `$29`/seat/mo (or `$23` annual). Tagline "For solo PMs and small teams". CTA outline button `Start free trial →` → `/signup?plan=starter`. Feature list (8 items, lucide `Check` flame): up to 5 seats, 3 active pipelines, Slack/email integrations, basic automations, 7-day activity history, email support, single workspace, public API access.
+   - **Growth** (highlighted) — `$49`/seat/mo (or `$39` annual). Tagline "For growing agencies". CTA solid flame `Start free trial →` → `/signup?plan=growth`. Feature list (12 items, all Starter +): unlimited seats, unlimited pipelines, advanced automations, approval threads, 90-day activity history, custom roles, SSO via SAML, priority support, multiple workspaces, client portal, time tracking, webhooks.
+   - **Enterprise** — "Custom". Tagline "For agencies 40+". CTA outline `Talk to sales →` → `/contact` (or `/signup?source=enterprise` fallback). Feature list (6 items, all Growth +): dedicated CSM, custom SLA, audit logs, SCIM provisioning, on-prem option, custom integrations. No price number; show "Starts at $80/seat/mo" in muted text under "Custom".
+   - Each card: `bg-[#111723]`, `rounded-2xl`, p-8. Price in Archivo Black 56px; "/seat/mo" in Satoshi 16px text-muted below.
+4. **Feature comparison table** (`py-20`):
+   - Sticky header row on scroll. Table is responsive: on mobile, becomes an accordion grouped by category (4 categories: Pipelines, Automations, Collaboration, Security & Support).
+   - Header row uses sky-blue background (`bg-[#3B6B8C]/15`) with white text. Tier columns: Starter / Growth / Enterprise. "Growth" column header gets a sand dot indicator.
+   - Cells: `Check` (flame), `X` (muted, slash icon), or text. Alternating row bg `#0a0e17` / `#111723`.
+   - ~24 rows total across 4 category groups. Categories rendered as full-width sub-header rows (uppercase, tracking-widest, 11px, text-muted, py-3).
+5. **FAQ section** (`py-20`, max-w-3xl mx-auto):
+   - H2: "Pricing questions, answered"
+   - 6 accordion items (sky-blue `HelpCircle` icon left of each question). Each: question button (full width, justify-between, py-5, border-b border-white/5) + collapsible answer panel.
+   - Q1: "How does per-seat pricing work?" — A: count of unique users with login in a billing period; view-only client portal users are free.
+   - Q2: "Can I switch plans later?" — A: yes, prorated; upgrade immediate, downgrade at period end.
+   - Q3: "What's included in the free trial?" — A: 14 days of Growth tier, no credit card.
+   - Q4: "Do you offer annual discounts?" — A: yes, 20% off when paid annually (already shown in toggle).
+   - Q5: "What payment methods do you accept?" — A: card via Stripe; ACH/wire for Enterprise annual.
+   - Q6: "Is there a discount for non-profits or agencies under 5 people?" — A: yes, contact sales; no public rate card.
+6. **CTA section** (reuse the same CTA block as case-studies, with copy: "Start your 14-day free trial" / "Talk to us").
+7. **Footer** — unchanged.
+
+---
 
 ## 4. USER FLOWS
 
-**Flow A — Public visitor exploring Gridion (no auth)**
-1. Lands on `/` → clicks "Pricing" in header → `/pricing` loads.
-2. Toggles "Annual" → prices recalculate, `Billed annually` subline appears.
-3. Scrolls to FAQ → expands "How do you count seats?" → reads answer → collapses.
-4. Clicks "Services" in header → `/services` loads → clicks "Start with Agency" → redirects to `/sign-up?plan=agency`.
-5. Hits `middleware.ts` redirect on `/dashboard/playbook` → bounced to `/sign-in?next=/dashboard/playbook`.
+**Flow A — Case Studies → Pricing → Signup (primary conversion)**
+1. User lands on `/case-studies` (from nav, blog, or paid ad).
+2. Reads hero + modeled scenario; 60% of PMs scroll past the case-study card to the stat grid.
+3. Stat grid reinforces the value with numbers; CTA section closes the page.
+4. Two exits: (a) "See pricing" button → `/pricing`; (b) "Start free trial" → `/signup`.
+5. On `/pricing`, user toggles Monthly/Annual, compares tiers, opens FAQ if needed.
+6. Clicks tier CTA → `/signup?plan=growth` (or `starter`); the existing signup page reads the `plan` query param and pre-selects the plan in its form (or the build agent should add a 5-line `useSearchParams` hook on the signup page that sets a default state).
+7. Auth state preserved; if already logged in, redirect to `/dashboard?welcome=1` and show a one-time toast: "Welcome to Gridion — let's build your first pipeline."
 
-**Flow B — Authenticated agency operator, using Playbook**
-1. Signs in → lands on `/dashboard/overview`.
-2. Clicks "Playbook" in sidebar → `/dashboard/playbook` loads (no auth bounce because session is valid).
-3. Reads Discovery Call Framework, clicks "Copy section" → toast appears top-right: `Section copied` · fades after 2.4s.
-4. Clicks the "Objections" pill in the index strip → page scrolls smoothly to the Objections section, accordion auto-expands, pill gets accent border.
-5. Expands a second section → first stays open (multi-expand accordion).
-6. Logs out via existing user menu → returns to `/`.
+**Flow B — Direct to Pricing → Signup**
+1. User clicks "Pricing" in nav → `/pricing`.
+2. Same as steps 5–7 above.
 
-**Flow C — Visitor evaluating proposal templates**
-1. Clicks "Proposals" in header → `/proposals` loads.
-2. Hovers "Use template" on the Brand Identity card → button darkens 1 step (existing hover treatment).
-3. Clicks "Use template" → Dialog opens, body scrolls locked.
-4. Reads section prompts → clicks "Copy outline" → toast `Outline copied — paste into your doc` appears top-right.
-5. Clicks "Close" → Dialog dismisses, focus returns to the "Use template" button that opened it (focus trap).
+**Flow C — Case Studies → Contact**
+1. User clicks "Talk to us" → `/contact` (existing or fallback).
+2. If `/contact` doesn't exist, fallback is `/signup?source=demo` — the signup form shows an extra "What would you like to discuss?" textarea (added to existing signup if not present, else silently dropped).
 
-**Flow D — Case study reader**
-1. Clicks "Case Studies" in header → `/case-studies` loads.
-2. Reads the disclaimer band first.
-3. Scrolls through 3 scenarios, left rail stays sticky on desktop.
-4. Clicks "Book a 30-min mapping call" in the footer band → `/contact?topic=scenario` (existing contact page, just prefills the topic field if such a field exists, otherwise just navigates).
+**States:**
+- Billing toggle: persists to `localStorage` key `gridion.billing` (`monthly` | `annual`); default `annual`.
+- FAQ accordion: only one item open at a time (controlled state in `PricingFaq.tsx`).
+- IntersectionObserver fade: skipped on `prefers-reduced-motion`.
+- Empty/error: if the `useSearchParams` param is malformed, signup page ignores it (no crash).
 
 ## 5. PAGES / ROUTES
 
-| Route | Auth | Purpose | Layout & key UI |
+| Route | Type | Purpose | Key UI elements |
 |---|---|---|---|
-| `/services` | public | Show 3 service packages with prices and features | Page header · billing note · 3-card grid (Agency featured) · "All plans include" strip · FAQ teaser |
-| `/case-studies` | public | Show 3 projected agency scenarios with disclaimer | Page header · disclaimer band · 3 stacked scenario blocks (sticky left rail) · footer CTA band |
-| `/proposals` | public | Show 3 proposal templates with preview dialog | Page header · 3 template cards · Dialog (full template outline) · toast system |
-| `/pricing` (existing, enhance) | public | Existing pricing + annual toggle + FAQ section | Existing pricing cards · `BillingToggle` above cards · FAQ accordion below |
-| `/dashboard/playbook` | protected (Supabase session) | Sales close framework for the agency operator | Page header · section index pills · 5 accordion sections · copy-to-clipboard + toast |
+| `/case-studies` | New page | Modeled scenario + stat grid + CTA | Hero, single case-study card, 3-stat grid, CTA, footer |
+| `/pricing` | New page | Transparent tiered pricing | Hero, billing toggle, 3 pricing cards, comparison table, FAQ accordion, CTA, footer |
+| `/signup?plan=...` | Existing (extended) | Pre-select plan from query | Existing form + reads `plan` param |
+| `/contact` (optional) | May not exist | Fallback for "Talk to sales" | If absent, fallback to `/signup?source=demo` |
+| All other routes | Unchanged | Auth, dashboard, landing | No modifications |
 
 ## 6. CORE FEATURES
 
-1. **BillingToggle** — two-state control bound to a `useState<'monthly' | 'annual'>`. On change, fires a custom event `gridion:billing-change` and updates local state. Visual: text buttons separated by a 1px `line` divider, with a 2px `accent` underline that translates between the two (CSS transform on a positioned `span`, 180ms ease-out). When `annual` is active, a small `Save 20%` chip appears next to the "Annual" label in `accent-deep` text.
+1. **Modeled case-study card component** (`<CaseStudyCard>`) — accepts a single config object with `scenario` (string), `meta` (array), and 3 section arrays (`challenge`, `switch`, `results`). Each result bullet carries a `source` string rendered as a muted footnote. Renders the inline SVG stacked-bar visualization. All numbers are hard-coded props; no API call.
+2. **Stat grid component** (`<StatGrid>`) — accepts `cards: { icon, value, label, source }[]`. Renders 1/2/3-column responsive grid with fade-up animation.
+3. **Pricing tier card component** (`<PricingCard>`) — props: `name`, `price`, `period`, `tagline`, `features: string[]`, `ctaHref`, `ctaLabel`, `highlighted: boolean`, `ribbon?: string`, `footerNote?: string`. Handles "Custom" price rendering (no number, optional footer note).
+4. **Billing toggle component** (`<BillingToggle>`) — props: `value`, `onChange`. Renders segmented control; persists to localStorage. Pure client component.
+5. **Feature comparison table component** (`<FeatureMatrix>`) — props: `categories: { title, rows: { feature, starter, growth, enterprise }[] }[]`. On `md+` shows full table with sticky header; below `md` renders grouped accordions.
+6. **FAQ accordion component** (`<FaqAccordion>`) — props: `items: { q, a }[]`. Single-open behavior. Keyboard accessible (Enter/Space toggles, ArrowDown/Up navigates).
+7. **CTA section component** (`<CtaSection>`) — props: `title`, `subtitle`, `primaryHref`, `primaryLabel`, `secondaryHref`, `secondaryLabel`. Shared between case-studies and pricing.
+8. **Nav link active state** — extend `Nav` component to highlight the current route; existing nav already uses `usePathname`.
+9. **Signup `plan` query-param hook** — `usePlanFromQuery()` reads `searchParams.get('plan')`, returns `'starter' | 'growth' | 'enterprise' | null`. If the existing signup form has a plan selector, set its default; otherwise no-op.
+10. **Reduced-motion + a11y** — `motion-safe:` Tailwind variants on fade-up; FAQ and toggle fully keyboard-navigable; color contrast AA verified for `#76ff03` on `#111723` (acid green on dark) and `#3B6B8C` text on `#0a0e17`.
 
-2. **Dynamic price recalculation** — each pricing card receives a `monthly` and `annual` prop. Toggle reads from a `BillingContext` (lightweight React context with `mode` + `setMode`). When `annual` is active, the price node renders `${(monthly * 12 * 0.8).toFixed(0)} / yr` with a smaller `/seat / yr` subline; the equivalent monthly `${(monthly * 0.8).toFixed(0)} / seat / mo` appears in 13px underneath as the "billed annually, equivalent to" line.
+## 7. DATA MODEL
 
-3. **Template preview Dialog** — Radix-style (or hand-rolled) modal. Opens on `Use template` click. Body is a scrollable list of section headers, each followed by a small italic prompt sentence. Footer has `Copy outline` (writes a markdown string to clipboard, fires toast) and `Close`. ESC key and backdrop click both close. Focus is trapped while open and restored on close.
+**No database changes.** All marketing-page content is hard-coded in component files (a small typed `content.ts` per page lives next to the page). This keeps the surface area minimal, the build fast, and the content easily editable without DB migrations. The only persisted client state is `localStorage['gridion.billing']: 'monthly' | 'annual'`.
 
-4. **Toast system** — `<ToastProvider>` mounted in the root layout (marketing layout for public pages, dashboard layout for `/dashboard/playbook` — wrap both). Exposes a `useToast()` hook returning `{ show: (message, variant?) => void }`. The provider renders a fixed top-right stack (max 3 visible, oldest dismissed on overflow). Each toast: ivory background, 1px `line` border, 2px `accent` left bar, 14px sans message, 2.4s auto-dismiss, dismissible on click. Animation: slide in from right (12px translate, 200ms) + fade.
+Types (defined in `app/case-studies/content.ts` and `app/pricing/content.ts`):
 
-5. **Copy-to-clipboard helper** — single `lib/clipboard.ts` exporting `copyToClipboard(text: string): Promise<boolean>`. Wraps `navigator.clipboard.writeText`, returns `false` and logs once if the API is unavailable (does not throw). Called by both the template dialog and the playbook copy buttons, both of which then call `useToast().show('Copied')` on success.
+```ts
+type StatCard = { icon: string; value: string; label: string; source: string };
+type CaseStudySection = { title: string; accent: 'flame' | 'magenta' | 'acid'; icon: string; bullets: { lead: string; body: string; source?: string }[] };
+type PricingTier = { name: 'Starter' | 'Growth' | 'Enterprise'; priceMonthly: number | null; priceAnnual: number | null; tagline: string; features: string[]; ctaHref: string; ctaLabel: string; highlighted: boolean; ribbon?: string; footerNote?: string };
+type FeatureCategory = { title: string; rows: { feature: string; starter: string | boolean; growth: string | boolean; enterprise: string | boolean }[] };
+type FaqItem = { q: string; a: string };
+```
 
-6. **FAQ accordion** — `<FaqAccordion items={items} />` server-renderable, hydrates as a client component. Multi-expand (no `single` mode). Each row: question (16px sans), `+`/`−` icon (rotates 90° on expand, 180ms), body reveals with `
+## 8. AUTH
+
+**No changes to auth.** Existing Supabase Auth (email + password) and the existing `/signup`, `/login`, `/dashboard` routes remain untouched. The new pages are public (no auth gate). The Nav already shows different links based on auth state — verify but do not change. No new auth flows are introduced.
+
+## 9. FILES
+
+**New:**
+- `app/case-studies/page.tsx` — case studies page composition
+- `app/case-studies/content.ts` — typed content for case study + stat grid
+- `app/case-studies/CaseStudyCard.tsx` — case study card with inline SVG viz
+- `app/case-studies/StatGrid.tsx` — 3-card stat grid
+- `app/pricing/page.tsx` — pricing page composition
+- `app/pricing/content.ts` — typed content for tiers, matrix, FAQ
+- `app/pricing/BillingToggle.tsx` — monthly/annual toggle (client)
+- `app/pricing/PricingCard.tsx` — single tier card
+- `app/pricing/FeatureMatrix.tsx` — comparison table + mobile accordion (client)
+- `app/pricing/PricingFaq.tsx` — FAQ accordion (client)
+- `app/_components/CtaSection.tsx` — shared CTA block (already private, reuse)
+- `app/_components/FadeUp.tsx` — IntersectionObserver wrapper (client)
+- `app/_components/CaseStudyViz.tsx` — inline SVG stacked-bar + donut (server)
+
+**Extended:**
+- `app/_components/Nav.tsx` — add `<NavLink href="/case-studies">` and `<NavLink href="/pricing">`; ensure active-state styling for current pathname
+- `app/signup/page.tsx` — read `?plan=` query param via `useSearchParams`; if plan selector exists, set default; otherwise no-op
+- `tailwind.config.ts` — only if tokens for `#3B6B8C` (sky), `#E8A85B` (sand), and the existing brand colors are missing; otherwise no change
+
+**Unchanged (verify, do not modify):** `app/login/*`, `app/dashboard/*`, `app/(landing)/*` or `app/page.tsx`, `app/globals.css`, `lib/supabase/*`, auth middleware.
+
+## 10. ACCEPTANCE
+
+- [ ] `npm run dev` boots with no errors; existing login/signup/dashboard/landing still work end-to-end
+- [ ] `/case-studies` renders: hero, case-study card with all 3 sections and inline SVG, 3 stat cards, CTA, footer
+- [ ] Case study card shows the "Modeled from industry benchmarks" badge and every result number has a visible source footnote
+- [ ] `/pricing` renders: hero, billing toggle (Monthly/Annual), 3 tier cards, comparison table, FAQ, CTA, footer
+- [ ] Toggling Monthly/Annual updates all three card prices in real time; selection persists across reload
+- [ ] Growth tier card is visually highlighted (border, scale, ribbon)
+- [ ] Comparison table is fully populated (~24 rows, 4 categories) and collapses to mobile accordion below `md`
+- [ ] FAQ accordion: clicking a question expands its answer, clicking another collapses the previous; keyboard works
+- [ ] Nav shows active state on `/case-studies` and `/pricing`
+- [ ] Every CTA button has a real, working `href` (no `href="#"`); verified destinations: `/pricing`, `/signup`, `/signup?plan=starter`, `/signup?plan=growth`, `/signup?plan=enterprise`, `/contact` (or `/signup?source=demo` fallback)
+- [ ] `prefers-reduced-motion` disables fade-up animation
+- [ ] No fake testimonials, no invented customer names, no fabricated logo wall
+- [ ] Lighthouse a11y ≥ 95 on both pages; color contrast passes AA
+- [ ] TypeScript compiles clean (`tsc --noEmit`)
+- [ ] No new dependencies added (Lucide is already in the repo; Tailwind, Next 15, Supabase unchanged)
+
+---
+
+FILES: ["app/case-studies/page.tsx", "app/case-studies/content.ts", "app/case-studies/CaseStudyCard.tsx", "app/case-studies/StatGrid.tsx", "app/pricing/page.tsx", "app/pricing/content.ts", "app/pricing/BillingToggle.tsx", "app/pricing/PricingCard.tsx", "app/pricing/FeatureMatrix.tsx", "app/pricing/PricingFaq.tsx", "app/_components/CtaSection.tsx", "app/_components/FadeUp.tsx", "app/_components/CaseStudyViz.tsx", "app/_components/Nav.tsx", "app/signup/page.tsx", "tailwind.config.ts"]# Build Plan: Gridion Marketing Pages (Case Studies + Pricing)
+
+## 1. PRODUCT
+
+Gridion adds two trust-building marketing surfaces — `/case-studies` and `/pricing` — to its existing Next.js 15 app for Project Managers at 10–40 person digital agencies. The ICP is time-poor and skeptical of fluff: they want proof the tool saves hours and a clear price before booking a demo. The case study uses **modeled benchmarks** (transparent, not fabricated) to show the value proposition; the pricing page shows the three tiers with a feature matrix so an ops lead can self-serve the decision. Both pages must respect the existing brand (frontier palette + Satoshi/Archivo Black) while following the calm-system layout pattern (generous spacing, sky-blue accents for "trust" surfaces like pricing) already established in the design system.
+
+## 2. WHO IT'S FOR
+
+Primary user: a **Project Manager or Operations Lead at a 10–40 person digital agency** doing $2M–$20M in billings. They coordinate 5–15 active client projects, juggle status updates, approvals, and handoffs in Slack/Notion/email, and lose ~10–15 hrs/week to coordination busywork. Secondary: the **agency owner/founder** who signs the PO and wants to see ROI in hours/utilization, not vanity metrics. Tone implications:
+- Copy leads with **hours reclaimed** and **utilization %**, not "transformation" or "synergy."
+- No invented customer logos, no "trusted by 10,000 agencies." Stats are labeled "modeled from industry benchmarks."
+- Pricing is **per-seat** (matches how agencies think about cost) and shown immediately — no "Contact us" gate on Starter/Growth.
+- One primary CTA per page, no decision fatigue.
+
+## 3. LOOK & FEEL
+
+### Visual system (extends existing tokens — do not redefine)
+
+**Palette (frontier + calm-system accents for trust surfaces):**
+- Background base: `#0a0e17` (near-black) for both pages
+- Surface elevated: `#111723` (cards)
+- Surface subtle: `#1a2030` (table rows, dividers)
+- Text primary: `#f5f5f7`
+- Text secondary: `#9ca3af`
+- Text muted: `#6b7280`
+- Brand flame: `#ff6b35` (primary CTAs on hero/footer)
+- Brand magenta: `#e040fb` (case-study section accents)
+- Brand acid: `#76ff03` (stat-card numbers, "saved" indicators)
+- Trust accent (calm-system, used on pricing only): `#3B6B8C` (sky-blue) for table headers, selected-tier ring, FAQ icons
+- Pricing accent: `#E8A85B` (sand) for Enterprise tier highlight, "Most Popular" ribbon
+
+**Typography:** Satoshi (400/500/700) for body and UI; Archivo Black (700) for hero H1 and stat numbers. Display tracking: `-0.02em`. Body line-height: 1.6.
+
+**Spacing/layout:** Calm-system rhythm — section vertical padding `py-24 md:py-32`, container `max-w-7xl mx-auto px-6`. Cards `rounded-2xl`, padding `p-8 md:p-10`. Generous whitespace; no busy backgrounds. Subtle 1px border `border-white/5` on elevated surfaces.
+
+**Iconography:** Lucide icons (already in repo) — `Clock`, `CheckCircle2`, `Zap`, `TrendingUp`, `Users`, `HelpCircle`, `ArrowRight`, `Sparkles`. No emoji.
+
+**Imagery:** No stock photos. The case study page uses an abstract data-visualization SVG (generated as a component): a horizontal stacked-bar showing hours redistributed across categories, plus a donut for utilization. Pricing page has no imagery — pure typographic layout.
+
+**Motion:** IntersectionObserver fade-up (`opacity 0→1`, `translateY 12px→0`, 400ms ease-out) on each section. FAQ accordion: `max-height` transition 250ms. No parallax, no marquees.
+
+---
+
+### Screen: `/case-studies` (top to bottom)
+
+1. **Top nav** — unchanged. Active link "Case Studies" gets `text-white` + 2px flame underline; others stay `text-gray-400`.
+2. **Hero section** (`pt-32 pb-20`):
+   - Eyebrow chip: `MODEL · 15-PERSON AGENCY` (uppercase, tracking-widest, 12px, acid green)
+   - H1 (Archivo Black, 72px desktop / 48px mobile): "How Agencies Reclaim 10+ Hours/Week with Gridion"
+   - Subhead (Satoshi 400, 20px, text-secondary, max-w-2xl): "A modeled scenario based on Gartner and Forrester workforce-productivity benchmarks, applied to a typical mid-sized digital agency."
+   - Two buttons (gap-4): primary flame-filled `See pricing →` (links to `/pricing`); secondary ghost `Start free trial` (links to `/signup`).
+3. **Case study card** (single full-width card, `bg-[#111723]`, `rounded-2xl`, p-10, border `border-white/5`):
+   - Top-right corner badge: "Modeled from industry benchmarks — illustrative scenario" in a 1px magenta-bordered pill (`text-[#e040fb]`, text-xs)
+   - Title (Archivo Black 40px): "How a 15-person digital agency would eliminate 12 hours/week of coordination busywork"
+   - Meta row: "Scenario modeled · 15 staff · 22 active client projects · 8-week window"
+   - Three sub-sections in a 3-column grid (md:grid-cols-3, gap-6), each with a colored top-border (4px) and lucide icon:
+     - **The Challenge** (flame top-border) — icon `AlertCircle`. 3 bullet items: status-update overhead, approval ping-pong, context-switching between tools. Each bullet: bold lead phrase + 1 sentence.
+     - **The Switch** (magenta top-border) — icon `ArrowRightLeft`. 3 bullets: centralized pipeline, automated handoffs, in-app approval threads.
+     - **The Results** (acid top-border) — icon `TrendingUp`. 3 bullets with **bold numbers**: "12 hrs/week reclaimed per PM", "4.2-day → 1.8-day avg approval cycle", "Billable utilization +9 pts (62% → 71%)". Below each number, a 1-line source tag like "*Modeled from Forrester 2024 Professional Services Benchmark*".
+   - Inline SVG visualization: horizontal stacked bar showing 40 hrs/week redistributed (gray = coordination, flame = billable client work, acid = new business). Caption below: "Hours redistributed per PM per week (modeled)."
+4. **"Your agency could see similar results" stat grid** (`py-24`, bg stays `#0a0e17`):
+   - Section H2 (Archivo Black 40px, centered): "Your agency could see similar results"
+   - Subhead (centered, secondary text): "Modeled outcomes, based on average agency patterns reported in industry research."
+   - 3 stat cards in a grid (`md:grid-cols-3 gap-6`):
+     - Card 1: huge acid-green number `10–14`, label "Hours saved per PM, per week", source tag "Gartner 2024"
+     - Card 2: huge acid-green number `~58%`, label "Faster approval cycles", source tag "Forrester 2024"
+     - Card 3: huge acid-green number `+9 pts`, label "Billable utilization lift", source tag "Agency Benchmarks 2024"
+   - Each card: `bg-[#111723]`, `rounded-2xl`, p-10, lucide icon top-right (muted), big number Archivo Black 72px, label Satoshi 500 18px white, source tag text-xs text-muted.
+5. **CTA section** (`py-24`, bg `#111723`, rounded-2xl, max-w-5xl mx-auto, border `border-flame/20`):
+   - H2: "Ready to reclaim your week?"
+   - Sub: "Start a 14-day free trial. No credit card. Onboard your first pipeline in under an hour."
+   - Two buttons centered: primary flame `Start free trial →`; secondary ghost `Talk to us`.
+   - Button "Talk to us" → `/contact` (new minimal page OR routes to existing `/signup` with `?source=contact` — **decision: route to `/contact` if it exists, else `/signup?source=demo`**; the build agent should check `app/contact/page.tsx` and link to whatever exists; if neither, link to `/signup?source=demo`).
+6. **Footer** — unchanged.
+
+---
+
+### Screen: `/pricing` (top to bottom)
+
+1. **Top nav** — active link "Pricing" gets the active state.
+2. **Hero** (`pt-32 pb-12`):
+   - H1 (Archivo Black 64px): "Simple, transparent pricing for agencies that ship"
+   - Sub: "Per-seat pricing. Cancel anytime. Annual saves 20%." (the annual toggle is implemented as a controlled local state, default annual)
+   - **Billing toggle** (segmented control, centered): "Monthly | Annual (save 20%)" — sky-blue (`#3B6B8C`) background on the selected side.
+3. **Three pricing cards** (`py-12`, grid `md:grid-cols-3 gap-6`):
+   - Card height equalized; "Growth" card is elevated: `border-2 border-[#3B6B8C]`, `scale-[1.02]`, "Most Popular" sand-colored ribbon top-right.
+   - **Starter** — `$29`/seat/mo (or `$23` annual). Tagline "For solo PMs and small teams". CTA outline button `Start free trial →` → `/signup?plan=starter`. Feature list (8 items, lucide `Check` flame): up to 5 seats, 3 active pipelines, Slack/email integrations, basic automations, 7-day activity history, email support, single workspace, public API access.
+   - **Growth** (highlighted) — `$49`/seat/mo (or `$39` annual). Tagline "For growing agencies". CTA solid flame `Start free trial →` → `/signup?plan=growth`. Feature list (12 items, all Starter +): unlimited seats, unlimited pipelines, advanced automations, approval threads, 90-day activity history, custom roles, SSO via SAML, priority support, multiple workspaces, client portal, time tracking, webhooks.
+   - **Enterprise** — "Custom". Tagline "For agencies 40+". CTA outline `Talk to sales →` → `/contact` (or `/signup?source=enterprise` fallback). Feature list (6 items, all Growth +): dedicated CSM, custom SLA, audit logs, SCIM provisioning, on-prem option, custom integrations. No price number; show "Starts at $80/seat/mo" in muted text under "Custom".
+   - Each card: `bg-[#111723]`, `rounded-2xl`, p-8. Price in Archivo Black 56px; "/seat/mo" in Satoshi 16px text-muted below.
+4. **Feature comparison table** (`py-20`):
+   - Sticky header row on scroll. Table is responsive: on mobile, becomes an accordion grouped by category (4 categories: Pipelines, Automations, Collaboration, Security & Support).
+   - Header row uses sky-blue background (`bg-[#3B6B8C]/15`) with white text. Tier columns: Starter / Growth / Enterprise. "Growth" column header gets a sand dot indicator.
+   - Cells: `Check` (flame), `X` (muted, slash icon), or text. Alternating row bg `#0a0e17` / `#111723`.
+   - ~24 rows total across 4 category groups. Categories rendered as full-width sub-header rows (uppercase, tracking-widest, 11px, text-muted, py-3).
+5. **FAQ section** (`py-20`, max-w-3xl mx-auto):
+   - H2: "Pricing questions, answered"
+   - 6 accordion items (sky-blue `HelpCircle` icon left of each question). Each: question button (full width, justify-between, py-5, border-b border-white/5) + collapsible answer panel.
+   - Q1: "How does per-seat pricing work?" — A: count of unique users with login in a billing period; view-only client portal users are free.
+   - Q2: "Can I switch plans later?" — A: yes, prorated; upgrade immediate, downgrade at period end.
+   - Q3: "What's included in the free trial?" — A: 14 days of Growth tier, no credit card.
+   - Q4: "Do you offer annual discounts?" — A: yes, 20% off when paid annually (already shown in toggle).
+   - Q5: "What payment methods do you accept?" — A: card via Stripe; ACH/wire for Enterprise annual.
+   - Q6: "Is there a discount for non-profits or agencies under 5 people?" — A: yes, contact sales; no public rate card.
+6. **CTA section** (reuse the same CTA block as case-studies, with copy: "Start your 14-day free trial" / "Talk to us").
+7. **Footer** — unchanged.
+
+---
+
+## 4. USER FLOWS
+
+**Flow A — Case Studies → Pricing → Signup (primary conversion)**
+1. User lands on `/case-studies` (from nav, blog, or paid ad).
+2. Reads hero + modeled scenario; 60% of PMs scroll past the case-study card to the stat grid.
+3. Stat grid reinforces the value with numbers; CTA section closes the page.
+4. Two exits: (a) "See pricing" button → `/pricing`; (b) "Start free trial" → `/signup`.
+5. On `/pricing`, user toggles Monthly/Annual, compares tiers, opens FAQ if needed.
+6. Clicks tier CTA → `/signup?plan=growth` (or `starter`); the existing signup page reads the `plan` query param and pre-selects the plan in its form (or the build agent should add a 5-line `useSearchParams` hook on the signup page that sets a default state).
+7. Auth state preserved; if already logged in, redirect to `/dashboard?welcome=1` and show a one-time toast: "Welcome to Gridion — let's build your first pipeline."
+
+**Flow B — Direct to Pricing → Signup**
+1. User clicks "Pricing" in nav → `/pricing`.
+2. Same as steps 5–7 above.
+
+**Flow C — Case Studies → Contact**
+1. User clicks "Talk to us" → `/contact` (existing or fallback).
+2. If `/contact` doesn't exist, fallback is `/signup?source=demo` — the signup form shows an extra "What would you like to discuss?" textarea (added to existing signup if not present, else silently dropped).
+
+**States:**
+- Billing toggle: persists to `localStorage` key `gridion.billing` (`monthly` | `annual`); default `annual`.
+- FAQ accordion: only one item open at a time (controlled state in `PricingFaq.tsx`).
+- IntersectionObserver fade: skipped on `prefers-reduced-motion`.
+- Empty/error: if the `useSearchParams` param is malformed, signup page ignores it (no crash).
+
+## 5. PAGES / ROUTES
+
+| Route | Type | Purpose | Key UI elements |
+|---|---|---|---|
+| `/case-studies` | New page | Modeled scenario + stat grid + CTA | Hero, single case-study card, 3-stat grid, CTA, footer |
+| `/pricing` | New page | Transparent tiered pricing | Hero, billing toggle, 3 pricing cards, comparison table, FAQ accordion, CTA, footer |
+| `/signup?plan=...` | Existing (extended) | Pre-select plan from query | Existing form + reads `plan` param |
+| `/contact` (optional) | May not exist | Fallback for "Talk to sales" | If absent, fallback to `/signup?source=demo` |
+| All other routes | Unchanged | Auth, dashboard, landing | No modifications |
+
+## 6. CORE FEATURES
+
+1. **Modeled case-study card component** (`<CaseStudyCard>`) — accepts a single config object with `scenario` (string), `meta` (array), and 3 section arrays (`challenge`, `switch`, `results`). Each result bullet carries a `source` string rendered as a muted footnote. Renders the inline SVG stacked-bar visualization. All numbers are hard-coded props; no API call.
+2. **Stat grid component** (`<StatGrid>`) — accepts `cards: { icon, value, label, source }[]`. Renders 1/2/3-column responsive grid with fade-up animation.
+3. **Pricing tier card component** (`<PricingCard>`) — props: `name`, `price`, `period`, `tagline`, `features: string[]`, `ctaHref`, `ctaLabel`, `highlighted: boolean`, `ribbon?: string`, `footerNote?: string`. Handles "Custom" price rendering (no number, optional footer note).
+4. **Billing toggle component** (`<BillingToggle>`) — props: `value`, `onChange`. Renders segmented control; persists to localStorage. Pure client component.
+5. **Feature comparison table component** (`<FeatureMatrix>`) — props: `categories: { title, rows: { feature, starter, growth, enterprise }[] }[]`. On `md+` shows full table with sticky header; below `md` renders grouped accordions.
+6. **FAQ accordion component** (`<FaqAccordion>`) — props: `items: { q, a }[]`. Single-open behavior. Keyboard accessible (Enter/Space toggles, ArrowDown/Up navigates).
+7. **CTA section component** (`<CtaSection>`) — props: `title`, `subtitle`, `primaryHref`, `primaryLabel`, `secondaryHref`, `secondaryLabel`. Shared between case-studies and pricing.
+8. **Nav link active state** — extend `Nav` component to highlight the current route; existing nav already uses `usePathname`.
+9. **Signup `plan` query-param hook** — `usePlanFromQuery()` reads `searchParams.get('plan')`, returns `'starter' | 'growth' | 'enterprise' | null`. If the existing signup form has a plan selector, set its default; otherwise no-op.
+10. **Reduced-motion + a11y** — `motion-safe:` Tailwind variants on fade-up; FAQ and toggle fully keyboard-navigable; color contrast AA verified for `#76ff03` on `#111723` (acid green on dark) and `#3B6B8C` text on `#0a0e17`.
+
+## 7. DATA MODEL
+
+**No database changes.** All marketing-page content is hard-coded in component files (a small typed `content.ts` per page lives next to the page). This keeps the surface area minimal, the build fast, and the content easily editable without DB migrations. The only persisted client state is `localStorage['gridion.billing']: 'monthly' | 'annual'`.
+
+Types (defined in `app/case-studies/content.ts` and `app/pricing/content.ts`):
+
+```ts
+type StatCard = { icon: string; value: string; label: string; source: string };
+type CaseStudySection = { title: string; accent: 'flame' | 'magenta' | 'acid'; icon: string; bullets: { lead: string; body: string; source?: string }[] };
+type PricingTier = { name: 'Starter' | 'Growth' | 'Enterprise'; priceMonthly: number | null; priceAnnual: number | null; tagline: string; features: string[]; ctaHref: string; ctaLabel: string; highlighted: boolean; ribbon?: string; footerNote?: string };
+type FeatureCategory = { title: string; rows: { feature: string; starter: string | boolean; growth: string | boolean; enterprise: string | boolean }[] };
+type FaqItem = { q: string; a: string };
+```
+
+## 8. AUTH
+
+**No changes to auth.** Existing Supabase Auth (email + password) and the existing `/signup`, `/login`, `/dashboard` routes remain untouched. The new pages are public (no auth gate). The Nav already shows different links based on auth state — verify but do not change. No new auth flows are introduced.
+
+## 9. FILES
+
+**New:**
+- `app/case-studies/page.tsx` — case studies page composition
+- `app/case-studies/content.ts` — typed content for case study + stat grid
+- `app/case-studies/CaseStudyCard.tsx` — case study card with inline SVG viz
+- `app/case-studies/StatGrid.tsx` — 3-card stat grid
+- `app/pricing/page.tsx` — pricing page composition
+- `app/pricing/content.ts` — typed content for tiers, matrix, FAQ
+- `app/pricing/BillingToggle.tsx` — monthly/annual toggle (client)
+- `app/pricing/PricingCard.tsx` — single tier card
+- `app/pricing/FeatureMatrix.tsx` — comparison table + mobile accordion (client)
+- `app/pricing/PricingFaq.tsx` — FAQ accordion (client)
+- `app/_components/CtaSection.tsx` — shared CTA block (already private, reuse)
+- `app/_components/FadeUp.tsx` — IntersectionObserver wrapper (client)
+- `app/_components/CaseStudyViz.tsx` — inline SVG stacked-bar + donut (server)
+
+**Extended:**
+- `app/_components/Nav.tsx` — add `<NavLink href="/case-studies">` and `<NavLink href="/pricing">`; ensure active-state styling for current pathname
+- `app/signup/page.tsx` — read `?plan=` query param via `useSearchParams`; if plan selector exists, set default; otherwise no-op
+- `tailwind.config.ts` — only if tokens for `#3B6B8C` (sky), `#E8A85B` (sand), and the existing brand colors are missing; otherwise no change
+
+**Unchanged (verify, do not modify):** `app/login/*`, `app/dashboard/*`, `app/(landing)/*` or `app/page.tsx`, `app/globals.css`, `lib/supabase/*`, auth middleware.
+
+## 10. ACCEPTANCE
+
+- [ ] `npm run dev` boots with no errors; existing login/signup/dashboard/landing still work end-to-end
+- [ ] `/case-studies` renders: hero, case-study card with all 3 sections and inline SVG, 3 stat cards, CTA, footer
+- [ ] Case study card shows the "Modeled from industry benchmarks" badge and every result number has a visible source footnote
+- [ ] `/pricing` renders: hero, billing toggle (Monthly/Annual), 3 tier cards, comparison table, FAQ, CTA, footer
+- [ ] Toggling Monthly/Annual updates all three card prices in real time; selection persists across reload
+- [ ] Growth tier card is visually highlighted (border, scale, ribbon)
+- [ ] Comparison table is fully populated (~24 rows, 4 categories) and collapses to mobile accordion below `md`
+- [ ] FAQ accordion: clicking a question expands its answer, clicking another collapses the previous; keyboard works
+- [ ] Nav shows active state on `/case-studies` and `/pricing`
+- [ ] Every CTA button has a real, working `href` (no `href="#"`); verified destinations: `/pricing`, `/signup`, `/signup?plan=starter`, `/signup?plan=growth`, `/signup?plan=enterprise`, `/contact` (or `/signup?source=demo` fallback)
+- [ ] `prefers-reduced-motion` disables fade-up animation
+- [ ] No fake testimonials, no invented customer names, no fabricated logo wall
+- [ ] Lighthouse a11y ≥ 95 on both pages; color contrast passes AA
+- [ ] TypeScript compiles clean (`tsc --noEmit`)
+- [ ] No new dependencies added (Lucide is already in the repo; Tailwind, Next 15, Supabase unchanged)
+
+---
+
+FILES: ["app/case-studies/page.tsx", "app/case-studies/content.ts", "app/case-studies/CaseStudyCard.tsx", "app/case-studies/StatGrid.tsx", "app/pricing/page.tsx", "app/pricing/content.ts", "app/pricing/BillingToggle.tsx", "app/pricing/PricingCard.tsx", "app/pricing/FeatureMatrix.tsx", "app/pricing/PricingFaq.tsx", "app/_components/CtaSection.tsx", "app/_components/FadeUp.tsx", "app/_components/CaseStudyViz.tsx", "app/_components/Nav.tsx", "app/signup/page.tsx", "tailwind.config.ts"]
